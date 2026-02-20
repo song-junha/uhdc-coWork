@@ -4,7 +4,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { useTeamStore } from './useTeamStore';
 import TeamList from './TeamList';
 import MemberList from './MemberList';
-import InviteDialog from './InviteDialog';
+import AddMemberDialog from './AddMemberDialog';
 import SpotGroupForm from './SpotGroupForm';
 
 interface TeamTabProps {
@@ -62,7 +62,7 @@ export default function TeamTab({ onOpenSettings }: TeamTabProps) {
     case 'members':
       return <MemberList />;
     case 'invite':
-      return <InviteDialog />;
+      return <AddMemberDialog />;
     case 'createGroup':
       return <SpotGroupForm />;
     default:

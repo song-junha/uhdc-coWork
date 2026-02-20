@@ -30,25 +30,17 @@ CREATE TABLE IF NOT EXISTS public.teams (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 3. Team Members
+-- 3. Team Members (Jira 사용자 기반 직접 등록)
 CREATE TABLE IF NOT EXISTS public.team_members (
-  id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  team_id   UUID NOT NULL REFERENCES public.teams(id) ON DELETE CASCADE,
-  user_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role      TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE(team_id, user_id)
-);
-
--- 4. Invitations
-CREATE TABLE IF NOT EXISTS public.invitations (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  team_id       UUID NOT NULL REFERENCES public.teams(id) ON DELETE CASCADE,
-  invited_email TEXT NOT NULL,
-  invited_by    UUID NOT NULL REFERENCES auth.users(id),
-  status        TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  expires_at    TIMESTAMPTZ NOT NULL
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id         UUID NOT NULL REFERENCES public.teams(id) ON DELETE CASCADE,
+  jira_account_id TEXT NOT NULL,
+  display_name    TEXT NOT NULL DEFAULT '',
+  email           TEXT,
+  avatar_url      TEXT,
+  role            TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
+  joined_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(team_id, jira_account_id)
 );
 
 -- 5. Shared Todos (sync target)
@@ -77,7 +69,6 @@ CREATE INDEX IF NOT EXISTS idx_shared_todos_team ON public.shared_todos(team_id)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shared_todos ENABLE ROW LEVEL SECURITY;
 
 -- ========================
@@ -92,51 +83,40 @@ CREATE POLICY "Users can update own profile"
 CREATE POLICY "Users can insert own profile"
   ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Teams
-CREATE POLICY "Team members can view their teams"
+-- Teams: created_by matches auth.uid()
+CREATE POLICY "Authenticated users can view their teams"
   ON public.teams FOR SELECT
-  USING (id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
+  USING (created_by = auth.uid());
 CREATE POLICY "Authenticated users can create teams"
   ON public.teams FOR INSERT WITH CHECK (auth.uid() = created_by);
-CREATE POLICY "Team admins can update teams"
+CREATE POLICY "Team creators can update teams"
   ON public.teams FOR UPDATE
-  USING (id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid() AND role = 'admin'));
+  USING (created_by = auth.uid());
 
--- Team Members
-CREATE POLICY "Team members can view their team members"
+-- Team Members: team creator (via teams.created_by) can manage members
+CREATE POLICY "Team creators can view members"
   ON public.team_members FOR SELECT
-  USING (team_id IN (SELECT tm.team_id FROM public.team_members tm WHERE tm.user_id = auth.uid()));
-CREATE POLICY "Team admins can insert members"
+  USING (team_id IN (SELECT id FROM public.teams WHERE created_by = auth.uid()));
+CREATE POLICY "Team creators can insert members"
   ON public.team_members FOR INSERT
-  WITH CHECK (
-    team_id IN (SELECT tm.team_id FROM public.team_members tm WHERE tm.user_id = auth.uid() AND tm.role = 'admin')
-    OR user_id = auth.uid()
-  );
-CREATE POLICY "Team admins can delete members"
+  WITH CHECK (team_id IN (SELECT id FROM public.teams WHERE created_by = auth.uid()));
+CREATE POLICY "Team creators can delete members"
   ON public.team_members FOR DELETE
-  USING (team_id IN (SELECT tm.team_id FROM public.team_members tm WHERE tm.user_id = auth.uid() AND tm.role = 'admin'));
+  USING (team_id IN (SELECT id FROM public.teams WHERE created_by = auth.uid()));
 
--- Invitations
-CREATE POLICY "Team members can view invitations"
-  ON public.invitations FOR SELECT
-  USING (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
-CREATE POLICY "Team admins can create invitations"
-  ON public.invitations FOR INSERT
-  WITH CHECK (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid() AND role = 'admin'));
-
--- Shared Todos
-CREATE POLICY "Team members can view shared todos"
+-- Shared Todos: team creator can manage shared todos
+CREATE POLICY "Team creators can view shared todos"
   ON public.shared_todos FOR SELECT
-  USING (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
-CREATE POLICY "Team members can insert shared todos"
+  USING (team_id IN (SELECT id FROM public.teams WHERE created_by = auth.uid()));
+CREATE POLICY "Team creators can insert shared todos"
   ON public.shared_todos FOR INSERT
-  WITH CHECK (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
-CREATE POLICY "Team members can update shared todos"
+  WITH CHECK (team_id IN (SELECT id FROM public.teams WHERE created_by = auth.uid()));
+CREATE POLICY "Team creators can update shared todos"
   ON public.shared_todos FOR UPDATE
-  USING (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
-CREATE POLICY "Team members can delete shared todos"
+  USING (team_id IN (SELECT id FROM public.teams WHERE created_by = auth.uid()));
+CREATE POLICY "Team creators can delete shared todos"
   ON public.shared_todos FOR DELETE
-  USING (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
+  USING (team_id IN (SELECT id FROM public.teams WHERE created_by = auth.uid()));
 
 -- ========================
 -- STEP 4: Triggers
@@ -164,4 +144,3 @@ FOR EACH ROW EXECUTE FUNCTION update_team_member_count();
 
 ALTER PUBLICATION supabase_realtime ADD TABLE public.shared_todos;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.team_members;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.invitations;

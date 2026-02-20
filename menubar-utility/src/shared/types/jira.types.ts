@@ -52,3 +52,10 @@ export interface JiraConfig {
   email: string;
   apiToken: string;
 }
+
+export interface JiraUser {
+  accountId: string;
+  displayName: string;
+  emailAddress?: string;
+  avatarUrl?: string;
+}

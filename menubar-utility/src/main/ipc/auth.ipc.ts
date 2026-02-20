@@ -12,8 +12,8 @@ function isJiraConfigured(): boolean {
   return !!(url && email && token);
 }
 
-function setupRealtime(userId: string): void {
-  supabaseService.getMyTeams(userId).then(teams => {
+function setupRealtime(jiraAccountId: string): void {
+  supabaseService.getMyTeams(jiraAccountId).then(teams => {
     const teamIds = teams.map(t => t.id);
     supabaseService.subscribeRealtime(teamIds, (event, payload) => {
       for (const win of BrowserWindow.getAllWindows()) {
@@ -24,33 +24,32 @@ function setupRealtime(userId: string): void {
 }
 
 export function registerAuthHandlers(): void {
-  // Jira 정보로 자동 Supabase 인증
   ipcMain.handle('auth:autoAuth', async (): Promise<AuthUser | null> => {
     if (!isJiraConfigured() || !supabaseService.isConfigured()) return null;
 
-    // 이미 세션이 있으면 재사용
-    const existing = await supabaseService.getSession();
-    if (existing) {
-      setupRealtime(existing.id);
-      return existing;
-    }
-
-    // Jira에서 본인 정보 가져와서 자동 로그인
     try {
       const jira = new JiraService();
       const myself = await jira.getMyself();
       const jiraEmail = settingsRepo.getSetting('jira_email')!;
 
-      const user = await supabaseService.autoSignInFromJira(jiraEmail, myself.displayName);
+      // 이미 세션 있으면 재사용
+      const existing = await supabaseService.getSession();
+      const user = existing ?? await supabaseService.autoSignInFromJira(jiraEmail, myself.displayName);
+      if (!user) return null;
+
+      // 기본 팀 보장
+      await supabaseService.ensureDefaultTeam(user.id, myself.accountId, myself.displayName, jiraEmail);
 
       // 초기 동기화
       try {
-        const teams = await supabaseService.getMyTeams(user.id);
+        const teams = await supabaseService.getMyTeams(myself.accountId);
         await syncAll(teams.map(t => t.id));
       } catch {}
 
-      setupRealtime(user.id);
-      return user;
+      setupRealtime(myself.accountId);
+
+      // AuthUser에 jiraAccountId 포함
+      return { ...user, id: user.id, jiraAccountId: myself.accountId };
     } catch (err) {
       console.error('Auto auth failed:', err);
       return null;

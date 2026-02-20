@@ -154,19 +154,16 @@ export const en = {
   'auth.switchToSignIn': 'Already have an account? Sign in',
   'auth.error': 'Authentication error',
 
-  // Invite
-  'invite.title': 'Invite Member',
-  'invite.email': 'Email to invite',
-  'invite.send': 'Send Invite',
-  'invite.success': 'Invitation sent',
+  // Add Member
+  'team.addMember': 'Add Member',
+  'team.searchJiraUser': 'Search by name or email...',
+  'team.noResults': 'No results found',
 
   // Spot Group Form
   'spotGroup.title': 'Create Spot Group',
   'spotGroup.name': 'Group Name',
   'spotGroup.description': 'Description (optional)',
-  'spotGroup.selectMembers': 'Select Members',
-  'spotGroup.inviteExternal': 'Invite External Emails',
-  'spotGroup.emailPlaceholder': 'Type email and press Enter',
+  'spotGroup.addMembersLater': 'You can add members after creating the group',
 
   // Sync
   'sync.syncing': 'Syncing...',

@@ -13,10 +13,10 @@ export interface Team {
 export interface TeamMember {
   id: string;
   teamId: string;
-  userId: string;
+  jiraAccountId: string;
   role: 'admin' | 'member';
   joinedAt: string;
-  displayName?: string;
+  displayName: string;
   email?: string;
   avatarUrl?: string;
 }
@@ -43,6 +43,7 @@ export interface AuthUser {
   email: string;
   displayName: string;
   avatarUrl: string | null;
+  jiraAccountId?: string;
 }
 
 export interface SupabaseConfig {

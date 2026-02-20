@@ -1,6 +1,6 @@
 import type { Todo, CreateTodoDto, UpdateTodoDto, TodoFilter } from './todo.types';
 import type { MemoFolder, Memo, CreateFolderDto, UpdateFolderDto, CreateMemoDto, UpdateMemoDto } from './memo.types';
-import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraHistoryItem, JiraSearchIssue } from './jira.types';
+import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraHistoryItem, JiraSearchIssue, JiraUser } from './jira.types';
 import type { CalendarEvent, CreateEventDto, UpdateEventDto } from './calendar.types';
 import type { Team, TeamMember, CreateGroupDto, AuthUser } from './team.types';
 
@@ -36,6 +36,7 @@ export interface ElectronAPI {
     searchTickets: (jql: string, maxResults?: number) => Promise<JiraSearchIssue[]>;
     testConnection: () => Promise<boolean>;
     getMyself: () => Promise<{ accountId: string; displayName: string }>;
+    searchUsers: (query: string) => Promise<JiraUser[]>;
   };
   calendar: {
     getEvents: (year: number, month: number) => Promise<CalendarEvent[]>;
@@ -50,8 +51,8 @@ export interface ElectronAPI {
     getMembers: (teamId: string) => Promise<TeamMember[]>;
     createSpotGroup: (data: CreateGroupDto) => Promise<Team>;
     archiveGroup: (groupId: string) => Promise<void>;
-    invite: (teamId: string, email: string) => Promise<void>;
-    removeMember: (teamId: string, userId: string) => Promise<void>;
+    addMember: (teamId: string, jiraAccountId: string, displayName: string, email: string) => Promise<void>;
+    removeMember: (teamId: string, memberId: string) => Promise<void>;
   };
   auth: {
     autoAuth: () => Promise<AuthUser | null>;

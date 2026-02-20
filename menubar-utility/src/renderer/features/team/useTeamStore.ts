@@ -19,8 +19,8 @@ interface TeamStore {
   fetchMembers: (teamId: string) => Promise<void>;
   createGroup: (data: CreateGroupDto) => Promise<void>;
   archiveGroup: (groupId: string) => Promise<void>;
-  invite: (teamId: string, email: string) => Promise<void>;
-  removeMember: (teamId: string, userId: string) => Promise<void>;
+  addMember: (teamId: string, jiraAccountId: string, displayName: string, email: string) => Promise<void>;
+  removeMember: (teamId: string, memberId: string) => Promise<void>;
   setActiveTeam: (teamId: string) => void;
   setView: (view: TeamView) => void;
   clearError: () => void;
@@ -107,17 +107,18 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
     set({ view: 'list', activeTeamId: null });
   },
 
-  invite: async (teamId, email) => {
+  addMember: async (teamId, jiraAccountId, displayName, email) => {
     set({ error: null });
     try {
-      await window.electronAPI.team.invite(teamId, email);
+      await window.electronAPI.team.addMember(teamId, jiraAccountId, displayName, email);
+      await get().fetchMembers(teamId);
     } catch (err) {
       set({ error: (err as Error).message });
     }
   },
 
-  removeMember: async (teamId, userId) => {
-    await window.electronAPI.team.removeMember(teamId, userId);
+  removeMember: async (teamId, memberId) => {
+    await window.electronAPI.team.removeMember(teamId, memberId);
     await get().fetchMembers(teamId);
   },
 

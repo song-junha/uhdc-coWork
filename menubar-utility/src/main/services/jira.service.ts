@@ -1,6 +1,6 @@
 import { safeStorage } from 'electron';
 import * as settingsRepo from '../db/settings.repo';
-import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue } from '../../shared/types/jira.types';
+import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser } from '../../shared/types/jira.types';
 
 interface CacheEntry<T> {
   data: T;
@@ -140,6 +140,26 @@ export class JiraService {
       `/rest/api/3/search/jql?${params.toString()}`
     );
     return result.issues;
+  }
+
+  async searchUsers(query: string): Promise<JiraUser[]> {
+    const params = new URLSearchParams({ query, maxResults: '10' });
+    const data = await this.request<Array<{
+      accountId: string;
+      displayName: string;
+      emailAddress?: string;
+      avatarUrls?: Record<string, string>;
+      accountType?: string;
+    }>>(`/rest/api/3/user/search?${params.toString()}`);
+
+    return data
+      .filter(u => u.accountType === 'atlassian')
+      .map(u => ({
+        accountId: u.accountId,
+        displayName: u.displayName,
+        emailAddress: u.emailAddress,
+        avatarUrl: u.avatarUrls?.['24x24'],
+      }));
   }
 
   async testConnection(): Promise<boolean> {

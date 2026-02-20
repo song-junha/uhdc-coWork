@@ -154,19 +154,16 @@ export const ko = {
   'auth.switchToSignIn': '이미 계정이 있으신가요? 로그인',
   'auth.error': '인증 오류',
 
-  // Invite
-  'invite.title': '멤버 초대',
-  'invite.email': '초대할 이메일',
-  'invite.send': '초대 전송',
-  'invite.success': '초대를 전송했습니다',
+  // Add Member
+  'team.addMember': '멤버 등록',
+  'team.searchJiraUser': '이름 또는 이메일로 검색...',
+  'team.noResults': '검색 결과가 없습니다',
 
   // Spot Group Form
   'spotGroup.title': '스팟 그룹 만들기',
   'spotGroup.name': '그룹 이름',
   'spotGroup.description': '설명 (선택)',
-  'spotGroup.selectMembers': '멤버 선택',
-  'spotGroup.inviteExternal': '외부 이메일 초대',
-  'spotGroup.emailPlaceholder': '이메일 입력 후 Enter',
+  'spotGroup.addMembersLater': '그룹 생성 후 멤버를 등록할 수 있습니다',
 
   // Sync
   'sync.syncing': '동기화 중...',

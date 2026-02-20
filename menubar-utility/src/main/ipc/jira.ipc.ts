@@ -65,6 +65,10 @@ export function registerJiraHandlers(): void {
   ipcMain.handle('jira:getMyself', async () => {
     return getJiraService().getMyself();
   });
+
+  ipcMain.handle('jira:searchUsers', async (_event, query: string) => {
+    return getJiraService().searchUsers(query);
+  });
 }
 
 export function resetJiraService(): void {

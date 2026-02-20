@@ -9,11 +9,11 @@ export default function MemberList() {
   const team = teams.find(te => te.id === activeTeamId);
   if (!team) return null;
 
-  const isAdmin = members.some(m => m.userId === user?.id && m.role === 'admin');
+  const isAdmin = members.some(m => m.jiraAccountId === user?.jiraAccountId && m.role === 'admin');
 
-  const handleRemove = async (userId: string) => {
+  const handleRemove = async (memberId: string) => {
     if (!activeTeamId || !confirm(t('team.removeConfirm'))) return;
-    await removeMember(activeTeamId, userId);
+    await removeMember(activeTeamId, memberId);
   };
 
   const handleArchive = async () => {
@@ -48,11 +48,15 @@ export default function MemberList() {
         ) : (
           members.map(member => (
             <div key={member.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--surface)] transition-colors">
-              <div className="w-7 h-7 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[10px] font-bold text-[var(--primary)]">
-                {(member.displayName ?? member.email ?? '?').charAt(0).toUpperCase()}
-              </div>
+              {member.avatarUrl ? (
+                <img src={member.avatarUrl} alt="" className="w-7 h-7 rounded-full" />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[10px] font-bold text-[var(--primary)]">
+                  {member.displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[var(--text)] truncate">{member.displayName ?? member.email}</p>
+                <p className="text-sm text-[var(--text)] truncate">{member.displayName}</p>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                   member.role === 'admin'
                     ? 'bg-amber-500/10 text-amber-600'
@@ -61,9 +65,9 @@ export default function MemberList() {
                   {t(member.role === 'admin' ? 'team.role.admin' : 'team.role.member')}
                 </span>
               </div>
-              {isAdmin && member.userId !== user?.id && (
+              {isAdmin && member.jiraAccountId !== user?.jiraAccountId && (
                 <button
-                  onClick={() => handleRemove(member.userId)}
+                  onClick={() => handleRemove(member.id)}
                   className="text-[var(--text-secondary)] hover:text-red-500 transition-colors"
                   title={t('team.remove')}
                 >
@@ -75,7 +79,7 @@ export default function MemberList() {
         )}
       </div>
 
-      {/* Invite button */}
+      {/* Add member button */}
       {isAdmin && (
         <div className="px-3 py-2 border-t border-[var(--border)]">
           <button
@@ -83,7 +87,7 @@ export default function MemberList() {
             className="w-full flex items-center justify-center gap-2 py-2 text-sm font-medium bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-hover)] transition-colors"
           >
             <UserPlus size={14} />
-            {t('team.inviteMembers')}
+            {t('team.addMember')}
           </button>
         </div>
       )}

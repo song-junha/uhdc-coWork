@@ -33,6 +33,7 @@ const api: ElectronAPI = {
     searchTickets: (jql, maxResults) => ipcRenderer.invoke('jira:searchTickets', jql, maxResults),
     testConnection: () => ipcRenderer.invoke('jira:testConnection'),
     getMyself: () => ipcRenderer.invoke('jira:getMyself'),
+    searchUsers: (query) => ipcRenderer.invoke('jira:searchUsers', query),
   },
   calendar: {
     getEvents: (year, month) => ipcRenderer.invoke('calendar:getEvents', year, month),
@@ -47,8 +48,8 @@ const api: ElectronAPI = {
     getMembers: (teamId) => ipcRenderer.invoke('team:getMembers', teamId),
     createSpotGroup: (data) => ipcRenderer.invoke('team:createSpotGroup', data),
     archiveGroup: (groupId) => ipcRenderer.invoke('team:archiveGroup', groupId),
-    invite: (teamId, email) => ipcRenderer.invoke('team:invite', teamId, email),
-    removeMember: (teamId, userId) => ipcRenderer.invoke('team:removeMember', teamId, userId),
+    addMember: (teamId, jiraAccountId, displayName, email) => ipcRenderer.invoke('team:addMember', teamId, jiraAccountId, displayName, email),
+    removeMember: (teamId, memberId) => ipcRenderer.invoke('team:removeMember', teamId, memberId),
   },
   auth: {
     autoAuth: () => ipcRenderer.invoke('auth:autoAuth'),

@@ -71,7 +71,6 @@ export class SupabaseService {
     if (!signUpData.user) throw new Error('Auto sign-up failed');
 
     await this.upsertProfile(signUpData.user.id, jiraEmail, displayName);
-    await this.ensureDefaultTeam(signUpData.user.id, displayName);
 
     return this.mapUser(signUpData.user);
   }
@@ -95,12 +94,12 @@ export class SupabaseService {
     }
   }
 
-  async getMyTeams(userId: string) {
+  async getMyTeams(jiraAccountId: string) {
     const client = this.getClient();
     const { data, error } = await client
       .from('team_members')
       .select('team_id, role, teams(*)')
-      .eq('user_id', userId);
+      .eq('jira_account_id', jiraAccountId);
 
     if (error) throw new Error(error.message);
 
@@ -124,57 +123,43 @@ export class SupabaseService {
     const client = this.getClient();
     const { data, error } = await client
       .from('team_members')
-      .select('id, team_id, user_id, role, joined_at, profiles(display_name, email, avatar_url)')
+      .select('id, team_id, jira_account_id, display_name, email, avatar_url, role, joined_at')
       .eq('team_id', teamId);
 
     if (error) throw new Error(error.message);
 
-    return (data ?? []).map((row: Record<string, unknown>) => {
-      const profile = row.profiles as Record<string, unknown> | null;
-      return {
-        id: row.id as string,
-        teamId: row.team_id as string,
-        userId: row.user_id as string,
-        role: row.role as 'admin' | 'member',
-        joinedAt: row.joined_at as string,
-        displayName: profile?.display_name as string | undefined,
-        email: profile?.email as string | undefined,
-        avatarUrl: profile?.avatar_url as string | undefined,
-      };
-    });
+    return (data ?? []).map((row: Record<string, unknown>) => ({
+      id: row.id as string,
+      teamId: row.team_id as string,
+      jiraAccountId: row.jira_account_id as string,
+      role: row.role as 'admin' | 'member',
+      joinedAt: row.joined_at as string,
+      displayName: (row.display_name as string) || '',
+      email: row.email as string | undefined,
+      avatarUrl: row.avatar_url as string | undefined,
+    }));
   }
 
-  async createSpotGroup(userId: string, name: string, description: string, memberIds: string[], inviteEmails: string[]) {
+  async createSpotGroup(jiraAccountId: string, displayName: string, email: string, groupName: string, description: string) {
     const client = this.getClient();
+    const session = await this.getSession();
+    const createdBy = session?.id ?? jiraAccountId;
 
-    // Create team
     const { data: team, error: teamErr } = await client
       .from('teams')
-      .insert({ name, type: 'spot', description, created_by: userId })
+      .insert({ name: groupName, type: 'spot', description, created_by: createdBy })
       .select()
       .single();
     if (teamErr) throw new Error(teamErr.message);
 
-    // Add creator as admin
-    await client.from('team_members').insert({ team_id: team.id, user_id: userId, role: 'admin' });
-
-    // Add existing members
-    if (memberIds.length > 0) {
-      await client.from('team_members').insert(
-        memberIds.map(uid => ({ team_id: team.id, user_id: uid, role: 'member' }))
-      );
-    }
-
-    // Send invitations for external emails
-    for (const email of inviteEmails) {
-      await client.from('invitations').insert({
-        team_id: team.id,
-        invited_email: email,
-        invited_by: userId,
-        status: 'pending',
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      });
-    }
+    // 생성자를 admin으로 등록
+    await client.from('team_members').insert({
+      team_id: team.id,
+      jira_account_id: jiraAccountId,
+      display_name: displayName,
+      email,
+      role: 'admin',
+    });
 
     return {
       id: team.id,
@@ -197,25 +182,25 @@ export class SupabaseService {
     if (error) throw new Error(error.message);
   }
 
-  async invite(teamId: string, email: string, invitedBy: string): Promise<void> {
+  async addMember(teamId: string, jiraAccountId: string, displayName: string, email: string): Promise<void> {
     const client = this.getClient();
-    const { error } = await client.from('invitations').insert({
+    const { error } = await client.from('team_members').insert({
       team_id: teamId,
-      invited_email: email,
-      invited_by: invitedBy,
-      status: 'pending',
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      jira_account_id: jiraAccountId,
+      display_name: displayName,
+      email,
+      role: 'member',
     });
     if (error) throw new Error(error.message);
   }
 
-  async removeMember(teamId: string, userId: string): Promise<void> {
+  async removeMember(teamId: string, memberId: string): Promise<void> {
     const client = this.getClient();
     const { error } = await client
       .from('team_members')
       .delete()
-      .eq('team_id', teamId)
-      .eq('user_id', userId);
+      .eq('id', memberId)
+      .eq('team_id', teamId);
     if (error) throw new Error(error.message);
   }
 
@@ -258,12 +243,12 @@ export class SupabaseService {
     });
   }
 
-  private async ensureDefaultTeam(userId: string, displayName: string): Promise<void> {
+  async ensureDefaultTeam(userId: string, jiraAccountId: string, displayName: string, email: string): Promise<void> {
     const client = this.getClient();
     const { data: existing } = await client
       .from('team_members')
       .select('team_id, teams!inner(type)')
-      .eq('user_id', userId)
+      .eq('jira_account_id', jiraAccountId)
       .eq('teams.type', 'default');
 
     if (existing && existing.length > 0) return;
@@ -275,7 +260,13 @@ export class SupabaseService {
       .single();
 
     if (team) {
-      await client.from('team_members').insert({ team_id: team.id, user_id: userId, role: 'admin' });
+      await client.from('team_members').insert({
+        team_id: team.id,
+        jira_account_id: jiraAccountId,
+        display_name: displayName,
+        email,
+        role: 'admin',
+      });
     }
   }
 
