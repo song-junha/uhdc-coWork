@@ -38,31 +38,42 @@ export class SupabaseService {
     this.client = null;
   }
 
-  async signIn(email: string, password: string): Promise<AuthUser> {
+  /**
+   * Jira 정보로 자동 Supabase 로그인.
+   * 계정이 없으면 자동 생성, 있으면 로그인.
+   */
+  async autoSignInFromJira(jiraEmail: string, displayName: string): Promise<AuthUser> {
+    if (!this.isConfigured()) throw new Error('Supabase not configured');
+
     const client = this.getClient();
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message);
+    // 결정적 비밀번호: Jira 이메일 기반 (Supabase는 RLS로 보호됨)
+    const password = `menubar_${jiraEmail}_auto`;
 
-    const user = data.user;
-    await this.upsertProfile(user.id, email, user.user_metadata?.display_name ?? email.split('@')[0]);
+    // 먼저 로그인 시도
+    const { data: signInData, error: signInError } = await client.auth.signInWithPassword({
+      email: jiraEmail,
+      password,
+    });
 
-    return this.mapUser(user);
-  }
+    if (!signInError && signInData.user) {
+      await this.upsertProfile(signInData.user.id, jiraEmail, displayName);
+      return this.mapUser(signInData.user);
+    }
 
-  async signUp(email: string, password: string, displayName: string): Promise<AuthUser> {
-    const client = this.getClient();
-    const { data, error } = await client.auth.signUp({
-      email,
+    // 로그인 실패 → 회원가입
+    const { data: signUpData, error: signUpError } = await client.auth.signUp({
+      email: jiraEmail,
       password,
       options: { data: { display_name: displayName } },
     });
-    if (error) throw new Error(error.message);
-    if (!data.user) throw new Error('Sign up failed. Check your email for verification.');
 
-    await this.upsertProfile(data.user.id, email, displayName);
-    await this.ensureDefaultTeam(data.user.id, displayName);
+    if (signUpError) throw new Error(signUpError.message);
+    if (!signUpData.user) throw new Error('Auto sign-up failed');
 
-    return this.mapUser(data.user);
+    await this.upsertProfile(signUpData.user.id, jiraEmail, displayName);
+    await this.ensureDefaultTeam(signUpData.user.id, displayName);
+
+    return this.mapUser(signUpData.user);
   }
 
   async signOut(): Promise<void> {

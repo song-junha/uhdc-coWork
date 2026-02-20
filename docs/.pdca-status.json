@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-20T08:13:33.503Z",
+  "lastUpdated": "2026-02-20T08:26:18.611Z",
   "activeFeatures": [
     "menubar-utility",
     "db",
@@ -32,7 +32,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:51:51.620Z",
-        "lastUpdated": "2026-02-20T07:53:32.461Z"
+        "lastUpdated": "2026-02-20T08:24:25.792Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/shared/types/ipc.types.ts"
     },
@@ -58,7 +58,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:55:22.996Z",
-        "lastUpdated": "2026-02-20T08:00:55.876Z"
+        "lastUpdated": "2026-02-20T08:25:08.603Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/ipc/auth.ipc.ts"
     },
@@ -97,9 +97,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:56:46.620Z",
-        "lastUpdated": "2026-02-20T08:00:37.750Z"
+        "lastUpdated": "2026-02-20T08:25:19.826Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/index.ts"
+      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/preload.ts"
     },
     "renderer": {
       "phase": "do",
@@ -175,9 +175,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T05:01:10.088Z",
-        "lastUpdated": "2026-02-20T08:13:33.503Z"
+        "lastUpdated": "2026-02-20T08:26:01.090Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/team/useTeamStore.ts"
+      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/team/TeamTab.tsx"
     },
     "i18n": {
       "phase": "do",
@@ -188,7 +188,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T05:07:31.784Z",
-        "lastUpdated": "2026-02-20T07:56:07.891Z"
+        "lastUpdated": "2026-02-20T08:26:18.611Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/shared/i18n/en.ts"
     },
@@ -242,7 +242,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T07:54:15.356Z",
-        "lastUpdated": "2026-02-20T08:13:12.569Z"
+        "lastUpdated": "2026-02-20T08:24:46.996Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/services/supabase.service.ts"
     },
@@ -268,7 +268,7 @@
   "session": {
     "startedAt": "2026-02-20T04:12:00.472Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-20T08:13:33.503Z"
+    "lastActivity": "2026-02-20T08:26:18.611Z"
   },
   "history": [
     {
@@ -1570,6 +1570,54 @@
     {
       "timestamp": "2026-02-20T08:13:33.503Z",
       "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:24:25.792Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:24:46.996Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:25:08.603Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:25:19.826Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:25:42.244Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:26:01.090Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:26:13.345Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:26:18.611Z",
+      "feature": "i18n",
       "phase": "do",
       "action": "updated"
     }

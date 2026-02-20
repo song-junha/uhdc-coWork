@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
-import { Database, Settings } from 'lucide-react';
+import { LinkIcon } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useTeamStore } from './useTeamStore';
-import AuthForm from './AuthForm';
 import TeamList from './TeamList';
 import MemberList from './MemberList';
 import InviteDialog from './InviteDialog';
@@ -14,21 +13,17 @@ interface TeamTabProps {
 
 export default function TeamTab({ onOpenSettings }: TeamTabProps) {
   const { t } = useI18n();
-  const { user, isConfigured, isLoading, view, checkConfigured, checkAuth } = useTeamStore();
+  const { user, isJiraConfigured, isLoading, view, checkAndAuth } = useTeamStore();
 
   useEffect(() => {
-    checkConfigured().then(() => {
-      if (useTeamStore.getState().isConfigured) {
-        checkAuth();
-      }
-    });
+    checkAndAuth();
   }, []);
 
-  // Not configured: show setup instructions
-  if (!isConfigured) {
+  // Jira 미설정: 설정으로 안내
+  if (!isJiraConfigured) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)] px-6">
-        <Database size={40} className="mb-3 opacity-40" />
+        <LinkIcon size={40} className="mb-3 opacity-40" />
         <h3 className="text-sm font-semibold text-[var(--text)] mb-1">{t('team.notConfigured')}</h3>
         <p className="text-[12px] text-center mb-4">{t('team.notConfiguredDesc')}</p>
         {onOpenSettings && (
@@ -36,7 +31,6 @@ export default function TeamTab({ onOpenSettings }: TeamTabProps) {
             onClick={onOpenSettings}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-hover)] transition-colors"
           >
-            <Settings size={14} />
             {t('team.goToSettings')}
           </button>
         )}
@@ -44,7 +38,7 @@ export default function TeamTab({ onOpenSettings }: TeamTabProps) {
     );
   }
 
-  // Loading initial auth check
+  // 자동 인증 중
   if (isLoading && !user) {
     return (
       <div className="flex items-center justify-center h-full text-[var(--text-secondary)]">
@@ -53,12 +47,17 @@ export default function TeamTab({ onOpenSettings }: TeamTabProps) {
     );
   }
 
-  // Not authenticated: show auth form
+  // 인증 실패 (Supabase 미설정 등)
   if (!user) {
-    return <AuthForm />;
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)] px-6">
+        <p className="text-sm text-center">{t('auth.error')}</p>
+        <p className="text-[11px] text-center mt-1">{t('team.notConfiguredDesc')}</p>
+      </div>
+    );
   }
 
-  // Authenticated: show appropriate view
+  // 인증 완료: 뷰 전환
   switch (view) {
     case 'members':
       return <MemberList />;

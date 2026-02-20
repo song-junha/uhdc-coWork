@@ -1,49 +1,63 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { supabaseService } from '../services/supabase.service';
+import { JiraService } from '../services/jira.service';
 import { syncAll } from '../services/sync.service';
+import * as settingsRepo from '../db/settings.repo';
 import type { AuthUser } from '../../shared/types/team.types';
+
+function isJiraConfigured(): boolean {
+  const url = settingsRepo.getSetting('jira_base_url');
+  const email = settingsRepo.getSetting('jira_email');
+  const token = settingsRepo.getSetting('jira_api_token');
+  return !!(url && email && token);
+}
 
 function setupRealtime(userId: string): void {
   supabaseService.getMyTeams(userId).then(teams => {
     const teamIds = teams.map(t => t.id);
     supabaseService.subscribeRealtime(teamIds, (event, payload) => {
-      const windows = BrowserWindow.getAllWindows();
-      for (const win of windows) {
+      for (const win of BrowserWindow.getAllWindows()) {
         win.webContents.send(event, payload);
       }
     });
-  }).catch(() => {
-    // Silently ignore realtime setup failure
-  });
+  }).catch(() => {});
 }
 
 export function registerAuthHandlers(): void {
-  ipcMain.handle('auth:signIn', async (_event, email: string, password: string): Promise<AuthUser> => {
-    const user = await supabaseService.signIn(email, password);
-    // Trigger initial sync and realtime
-    try {
-      const teams = await supabaseService.getMyTeams(user.id);
-      await syncAll(teams.map(t => t.id));
-    } catch {
-      // Sync failure shouldn't block sign-in
-    }
-    setupRealtime(user.id);
-    return user;
-  });
+  // Jira 정보로 자동 Supabase 인증
+  ipcMain.handle('auth:autoAuth', async (): Promise<AuthUser | null> => {
+    if (!isJiraConfigured() || !supabaseService.isConfigured()) return null;
 
-  ipcMain.handle('auth:signUp', async (_event, email: string, password: string, displayName: string): Promise<AuthUser> => {
-    const user = await supabaseService.signUp(email, password, displayName);
-    setupRealtime(user.id);
-    return user;
+    // 이미 세션이 있으면 재사용
+    const existing = await supabaseService.getSession();
+    if (existing) {
+      setupRealtime(existing.id);
+      return existing;
+    }
+
+    // Jira에서 본인 정보 가져와서 자동 로그인
+    try {
+      const jira = new JiraService();
+      const myself = await jira.getMyself();
+      const jiraEmail = settingsRepo.getSetting('jira_email')!;
+
+      const user = await supabaseService.autoSignInFromJira(jiraEmail, myself.displayName);
+
+      // 초기 동기화
+      try {
+        const teams = await supabaseService.getMyTeams(user.id);
+        await syncAll(teams.map(t => t.id));
+      } catch {}
+
+      setupRealtime(user.id);
+      return user;
+    } catch (err) {
+      console.error('Auto auth failed:', err);
+      return null;
+    }
   });
 
   ipcMain.handle('auth:signOut', async (): Promise<void> => {
     return supabaseService.signOut();
-  });
-
-  ipcMain.handle('auth:getSession', async (): Promise<AuthUser | null> => {
-    const user = await supabaseService.getSession();
-    if (user) setupRealtime(user.id);
-    return user;
   });
 }

@@ -8,15 +8,12 @@ interface TeamStore {
   teams: Team[];
   activeTeamId: string | null;
   members: TeamMember[];
-  isConfigured: boolean;
+  isJiraConfigured: boolean;
   isLoading: boolean;
   error: string | null;
   view: TeamView;
 
-  checkConfigured: () => Promise<void>;
-  checkAuth: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  checkAndAuth: () => Promise<void>;
   signOut: () => Promise<void>;
   fetchTeams: () => Promise<void>;
   fetchMembers: (teamId: string) => Promise<void>;
@@ -34,53 +31,32 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   teams: [],
   activeTeamId: null,
   members: [],
-  isConfigured: false,
+  isJiraConfigured: false,
   isLoading: false,
   error: null,
   view: 'list',
 
-  checkConfigured: async () => {
-    const url = await window.electronAPI.settings.get('supabase_url') || import.meta.env.VITE_SUPABASE_URL;
-    const key = await window.electronAPI.settings.get('supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY;
-    set({ isConfigured: !!(url && key) });
-  },
-
-  checkAuth: async () => {
+  // Jira 설정 확인 → 자동 Supabase 인증 → 팀 로드
+  checkAndAuth: async () => {
     set({ isLoading: true });
     try {
-      const user = await window.electronAPI.auth.getSession();
+      const jiraUrl = await window.electronAPI.settings.get('jira_base_url');
+      const jiraEmail = await window.electronAPI.settings.get('jira_email');
+      const jiraToken = await window.electronAPI.settings.get('jira_api_token');
+      const jiraOk = !!(jiraUrl && jiraEmail && jiraToken);
+      set({ isJiraConfigured: jiraOk });
+
+      if (!jiraOk) {
+        set({ user: null });
+        return;
+      }
+
+      // Jira가 설정되어 있으면 자동 인증
+      const user = await window.electronAPI.auth.autoAuth();
       set({ user });
       if (user) await get().fetchTeams();
     } catch {
       set({ user: null });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  signIn: async (email, password) => {
-    set({ isLoading: true, error: null });
-    try {
-      const user = await window.electronAPI.auth.signIn(email, password);
-      set({ user });
-      await get().fetchTeams();
-    } catch (err) {
-      set({ error: (err as Error).message });
-      throw err;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  signUp: async (email, password, displayName) => {
-    set({ isLoading: true, error: null });
-    try {
-      const user = await window.electronAPI.auth.signUp(email, password, displayName);
-      set({ user });
-      await get().fetchTeams();
-    } catch (err) {
-      set({ error: (err as Error).message });
-      throw err;
     } finally {
       set({ isLoading: false });
     }

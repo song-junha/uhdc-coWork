@@ -54,10 +54,8 @@ export interface ElectronAPI {
     removeMember: (teamId: string, userId: string) => Promise<void>;
   };
   auth: {
-    signIn: (email: string, password: string) => Promise<AuthUser>;
-    signUp: (email: string, password: string, displayName: string) => Promise<AuthUser>;
+    autoAuth: () => Promise<AuthUser | null>;
     signOut: () => Promise<void>;
-    getSession: () => Promise<AuthUser | null>;
   };
   sync: {
     pushTodos: (teamId: string) => Promise<void>;

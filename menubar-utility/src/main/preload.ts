@@ -51,10 +51,8 @@ const api: ElectronAPI = {
     removeMember: (teamId, userId) => ipcRenderer.invoke('team:removeMember', teamId, userId),
   },
   auth: {
-    signIn: (email, password) => ipcRenderer.invoke('auth:signIn', email, password),
-    signUp: (email, password, displayName) => ipcRenderer.invoke('auth:signUp', email, password, displayName),
+    autoAuth: () => ipcRenderer.invoke('auth:autoAuth'),
     signOut: () => ipcRenderer.invoke('auth:signOut'),
-    getSession: () => ipcRenderer.invoke('auth:getSession'),
   },
   sync: {
     pushTodos: (teamId) => ipcRenderer.invoke('sync:pushTodos', teamId),
