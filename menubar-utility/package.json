@@ -1,0 +1,107 @@
+{
+  "name": "menubar-utility",
+  "version": "1.0.0",
+  "description": "macOS Menu Bar Utility App - Todo, Memo, Jira, Calendar",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "vite",
+    "dev:electron": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "tsc && vite build",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "start": "electron .",
+    "pack": "tsc && vite build && electron-builder --dir",
+    "dist": "tsc && vite build && electron-builder",
+    "postinstall": "electron-rebuild -m .",
+    "rebuild": "electron-rebuild -m ."
+  },
+  "keywords": [
+    "electron",
+    "menubar",
+    "todo",
+    "memo",
+    "jira"
+  ],
+  "author": "",
+  "license": "ISC",
+  "build": {
+    "appId": "com.menubar-utility.app",
+    "productName": "MenuBar Utility",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "resources/**/*",
+      "!node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources"
+      },
+      {
+        "from": "src/main/db/migrations",
+        "to": "migrations"
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "resources/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "dmg": {
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
+  },
+  "packageManager": "pnpm@10.30.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "electron",
+      "esbuild"
+    ]
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@supabase/supabase-js": "^2.97.0",
+    "better-sqlite3": "^12.6.2",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.575.0",
+    "menubar": "^9.5.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.5.0",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "autoprefixer": "^10.4.24",
+    "concurrently": "^9.2.1",
+    "electron": "^40.6.0",
+    "electron-rebuild": "^3.2.9",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "wait-on": "^9.0.4"
+  }
+}
