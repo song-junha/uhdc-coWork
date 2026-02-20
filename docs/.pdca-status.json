@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-20T08:26:18.611Z",
+  "lastUpdated": "2026-02-20T09:50:27.594Z",
   "activeFeatures": [
     "menubar-utility",
     "db",
@@ -32,7 +32,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:51:51.620Z",
-        "lastUpdated": "2026-02-20T08:24:25.792Z"
+        "lastUpdated": "2026-02-20T09:42:59.320Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/shared/types/ipc.types.ts"
     },
@@ -58,7 +58,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:55:22.996Z",
-        "lastUpdated": "2026-02-20T08:25:08.603Z"
+        "lastUpdated": "2026-02-20T09:49:23.129Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/ipc/auth.ipc.ts"
     },
@@ -71,7 +71,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:56:17.726Z",
-        "lastUpdated": "2026-02-20T06:55:53.170Z"
+        "lastUpdated": "2026-02-20T08:31:29.174Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/services/jira.service.ts"
     },
@@ -97,7 +97,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:56:46.620Z",
-        "lastUpdated": "2026-02-20T08:25:19.826Z"
+        "lastUpdated": "2026-02-20T09:43:12.510Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/preload.ts"
     },
@@ -175,9 +175,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T05:01:10.088Z",
-        "lastUpdated": "2026-02-20T08:26:01.090Z"
+        "lastUpdated": "2026-02-20T09:46:44.760Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/team/TeamTab.tsx"
+      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/team/MemberList.tsx"
     },
     "i18n": {
       "phase": "do",
@@ -188,7 +188,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T05:07:31.784Z",
-        "lastUpdated": "2026-02-20T08:26:18.611Z"
+        "lastUpdated": "2026-02-20T09:44:25.314Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/shared/i18n/en.ts"
     },
@@ -242,7 +242,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T07:54:15.356Z",
-        "lastUpdated": "2026-02-20T08:24:46.996Z"
+        "lastUpdated": "2026-02-20T09:50:27.594Z"
       },
       "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/services/supabase.service.ts"
     },
@@ -268,7 +268,7 @@
   "session": {
     "startedAt": "2026-02-20T04:12:00.472Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-20T08:26:18.611Z"
+    "lastActivity": "2026-02-20T09:50:27.594Z"
   },
   "history": [
     {
@@ -1618,6 +1618,378 @@
     {
       "timestamp": "2026-02-20T08:26:18.611Z",
       "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:31:07.602Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:31:17.654Z",
+      "feature": "jira.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:31:29.174Z",
+      "feature": "jira.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:31:39.773Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:31:50.349Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:32:00.412Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:32:12.704Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:32:23.349Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:32:33.856Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:32:44.438Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:33:21.461Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:33:34.498Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:33:45.768Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:34:07.047Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:34:17.274Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:34:39.080Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:34:50.086Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T08:35:02.332Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:00:37.916Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:00:55.808Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:01:15.093Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:01:26.103Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:01:35.702Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:01:49.363Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:02:01.833Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:05:47.795Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:07:49.498Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:07:59.149Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:08:16.040Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:08:32.646Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:08:42.220Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:08:56.011Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:15:10.162Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:15:37.796Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:15:48.279Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:18:17.420Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:18:35.605Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:21:04.978Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:22:31.629Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:27:58.534Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:28:10.111Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:31:20.958Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:31:32.040Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:34:07.040Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:42:59.320Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:43:12.510Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:43:29.366Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:43:40.717Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:43:51.568Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:44:02.781Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:44:15.176Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:44:25.314Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:44:41.882Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:44:54.474Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:46:44.760Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:49:00.672Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:49:23.129Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:49:34.966Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:49:49.238Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:50:02.657Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:50:15.025Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:50:27.594Z",
+      "feature": "supabase.service.ts",
       "phase": "do",
       "action": "updated"
     }

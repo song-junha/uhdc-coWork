@@ -1,8 +1,11 @@
 {
-  "sessionCount": 7,
+  "sessionCount": 10,
   "lastSession": {
-    "startedAt": "2026-02-20T07:52:12.269Z",
+    "startedAt": "2026-02-20T09:48:06.536Z",
     "platform": "claude",
-    "level": "Starter"
-  }
+    "level": "Dynamic"
+  },
+  "currentFeature": "menubar-utility-app",
+  "currentPhase": "report",
+  "matchRate": 93
 }
