@@ -51,6 +51,8 @@ export interface ElectronAPI {
     getMembers: (teamId: string) => Promise<TeamMember[]>;
     createSpotGroup: (data: CreateGroupDto) => Promise<Team>;
     archiveGroup: (groupId: string) => Promise<void>;
+    deleteGroup: (groupId: string) => Promise<void>;
+    renameGroup: (groupId: string, name: string) => Promise<void>;
     addMember: (teamId: string, jiraAccountId: string, displayName: string, email: string) => Promise<void>;
     removeMember: (teamId: string, memberId: string) => Promise<void>;
   };

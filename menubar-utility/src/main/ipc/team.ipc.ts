@@ -50,6 +50,14 @@ export function registerTeamHandlers(): void {
     return supabaseService.archiveGroup(groupId);
   });
 
+  ipcMain.handle('team:deleteGroup', async (_event, groupId: string): Promise<void> => {
+    return supabaseService.deleteGroup(groupId);
+  });
+
+  ipcMain.handle('team:renameGroup', async (_event, groupId: string, name: string): Promise<void> => {
+    return supabaseService.renameGroup(groupId, name);
+  });
+
   ipcMain.handle('team:addMember', async (_event, teamId: string, jiraAccountId: string, displayName: string, email: string): Promise<void> => {
     return supabaseService.addMember(teamId, jiraAccountId, displayName, email);
   });

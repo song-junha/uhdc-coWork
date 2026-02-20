@@ -13,7 +13,7 @@ interface TeamTabProps {
 
 export default function TeamTab({ onOpenSettings }: TeamTabProps) {
   const { t } = useI18n();
-  const { user, isJiraConfigured, isLoading, view, checkAndAuth } = useTeamStore();
+  const { user, isJiraConfigured, isLoading, error, view, checkAndAuth } = useTeamStore();
 
   useEffect(() => {
     checkAndAuth();
@@ -52,7 +52,16 @@ export default function TeamTab({ onOpenSettings }: TeamTabProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)] px-6">
         <p className="text-sm text-center">{t('auth.error')}</p>
-        <p className="text-[11px] text-center mt-1">{t('team.notConfiguredDesc')}</p>
+        {error && (
+          <p className="text-[10px] text-red-400 text-center mt-2 px-2 py-1 bg-red-500/10 rounded">{error}</p>
+        )}
+        <p className="text-[11px] text-center mt-2">{t('team.notConfiguredDesc')}</p>
+        <button
+          onClick={() => checkAndAuth()}
+          className="mt-3 px-4 py-1.5 text-xs font-medium bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-hover)] transition-colors"
+        >
+          다시 시도
+        </button>
       </div>
     );
   }

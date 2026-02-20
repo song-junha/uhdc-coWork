@@ -48,6 +48,8 @@ const api: ElectronAPI = {
     getMembers: (teamId) => ipcRenderer.invoke('team:getMembers', teamId),
     createSpotGroup: (data) => ipcRenderer.invoke('team:createSpotGroup', data),
     archiveGroup: (groupId) => ipcRenderer.invoke('team:archiveGroup', groupId),
+    deleteGroup: (groupId) => ipcRenderer.invoke('team:deleteGroup', groupId),
+    renameGroup: (groupId, name) => ipcRenderer.invoke('team:renameGroup', groupId, name),
     addMember: (teamId, jiraAccountId, displayName, email) => ipcRenderer.invoke('team:addMember', teamId, jiraAccountId, displayName, email),
     removeMember: (teamId, memberId) => ipcRenderer.invoke('team:removeMember', teamId, memberId),
   },

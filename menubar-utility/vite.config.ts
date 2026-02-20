@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
 export default defineConfig({
+  envDir: path.resolve(__dirname), // .env를 프로젝트 루트에서 로드
   plugins: [
     react(),
     tailwindcss(),

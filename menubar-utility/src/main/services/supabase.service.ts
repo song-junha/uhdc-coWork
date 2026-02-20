@@ -1,10 +1,48 @@
 import { createClient, type SupabaseClient, type RealtimeChannel } from '@supabase/supabase-js';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { app } from 'electron';
 import * as settingsRepo from '../db/settings.repo';
 import type { AuthUser } from '../../shared/types/team.types';
 
-// Built-in defaults from .env (빌드 시 embed, 사용자 입력 불필요)
-const DEFAULT_URL = import.meta.env.VITE_SUPABASE_URL ?? '';
-const DEFAULT_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
+// .env 파일에서 직접 로드 (Vite import.meta.env가 main process에서 안 될 수 있음)
+function loadEnvDefaults(): { url: string; key: string } {
+  // 1) Vite embed 값 시도
+  try {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (url && key) return { url, key };
+  } catch {}
+
+  // 2) .env 파일 직접 파싱 (fallback)
+  try {
+    const envPaths = [
+      join(app.getAppPath(), '.env'),
+      join(app.getAppPath(), '..', '.env'),
+      join(process.cwd(), '.env'),
+    ];
+    for (const envPath of envPaths) {
+      try {
+        const content = readFileSync(envPath, 'utf-8');
+        const lines = content.split('\n');
+        let url = '';
+        let key = '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('VITE_SUPABASE_URL=')) url = trimmed.split('=').slice(1).join('=');
+          if (trimmed.startsWith('VITE_SUPABASE_ANON_KEY=')) key = trimmed.split('=').slice(1).join('=');
+        }
+        if (url && key) return { url, key };
+      } catch {}
+    }
+  } catch {}
+
+  return { url: '', key: '' };
+}
+
+const ENV_DEFAULTS = loadEnvDefaults();
+const DEFAULT_URL = ENV_DEFAULTS.url;
+const DEFAULT_KEY = ENV_DEFAULTS.key;
 
 export class SupabaseService {
   private client: SupabaseClient | null = null;
@@ -69,6 +107,11 @@ export class SupabaseService {
 
     if (signUpError) throw new Error(signUpError.message);
     if (!signUpData.user) throw new Error('Auto sign-up failed');
+
+    // 이메일 확인이 필요한 경우 세션이 없음
+    if (!signUpData.session) {
+      throw new Error('Email confirmation is enabled in Supabase. Please disable it: Dashboard > Authentication > Providers > Email > Confirm email OFF');
+    }
 
     await this.upsertProfile(signUpData.user.id, jiraEmail, displayName);
 
@@ -178,6 +221,26 @@ export class SupabaseService {
     const { error } = await client
       .from('teams')
       .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .eq('id', groupId);
+    if (error) throw new Error(error.message);
+  }
+
+  async deleteGroup(groupId: string): Promise<void> {
+    const client = this.getClient();
+    // team_members는 ON DELETE CASCADE로 자동 삭제
+    const { error } = await client
+      .from('teams')
+      .delete()
+      .eq('id', groupId)
+      .eq('type', 'spot'); // default 팀은 삭제 불가
+    if (error) throw new Error(error.message);
+  }
+
+  async renameGroup(groupId: string, name: string): Promise<void> {
+    const client = this.getClient();
+    const { error } = await client
+      .from('teams')
+      .update({ name })
       .eq('id', groupId);
     if (error) throw new Error(error.message);
   }

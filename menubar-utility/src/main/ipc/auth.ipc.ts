@@ -25,7 +25,9 @@ function setupRealtime(jiraAccountId: string): void {
 
 export function registerAuthHandlers(): void {
   ipcMain.handle('auth:autoAuth', async (): Promise<AuthUser | null> => {
-    if (!isJiraConfigured() || !supabaseService.isConfigured()) return null;
+    if (!isJiraConfigured() || !supabaseService.isConfigured()) {
+      return null;
+    }
 
     try {
       const jira = new JiraService();
@@ -44,14 +46,15 @@ export function registerAuthHandlers(): void {
       try {
         const teams = await supabaseService.getMyTeams(myself.accountId);
         await syncAll(teams.map(t => t.id));
-      } catch {}
+      } catch {
+        // Sync errors are non-fatal
+      }
 
       setupRealtime(myself.accountId);
 
       // AuthUser에 jiraAccountId 포함
       return { ...user, id: user.id, jiraAccountId: myself.accountId };
-    } catch (err) {
-      console.error('Auto auth failed:', err);
+    } catch {
       return null;
     }
   });

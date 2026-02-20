@@ -19,6 +19,8 @@ interface TeamStore {
   fetchMembers: (teamId: string) => Promise<void>;
   createGroup: (data: CreateGroupDto) => Promise<void>;
   archiveGroup: (groupId: string) => Promise<void>;
+  deleteGroup: (groupId: string) => Promise<void>;
+  renameGroup: (groupId: string, name: string) => Promise<void>;
   addMember: (teamId: string, jiraAccountId: string, displayName: string, email: string) => Promise<void>;
   removeMember: (teamId: string, memberId: string) => Promise<void>;
   setActiveTeam: (teamId: string) => void;
@@ -54,9 +56,13 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
       // Jira가 설정되어 있으면 자동 인증
       const user = await window.electronAPI.auth.autoAuth();
       set({ user });
-      if (user) await get().fetchTeams();
-    } catch {
-      set({ user: null });
+      if (user) {
+        await get().fetchTeams();
+      } else {
+        set({ error: 'Supabase 인증 실패. Supabase Dashboard에서 Email Confirm을 비활성화하세요.' });
+      }
+    } catch (err) {
+      set({ user: null, error: (err as Error).message });
     } finally {
       set({ isLoading: false });
     }
@@ -105,6 +111,17 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
     await window.electronAPI.team.archiveGroup(groupId);
     await get().fetchTeams();
     set({ view: 'list', activeTeamId: null });
+  },
+
+  deleteGroup: async (groupId) => {
+    await window.electronAPI.team.deleteGroup(groupId);
+    await get().fetchTeams();
+    set({ view: 'list', activeTeamId: null });
+  },
+
+  renameGroup: async (groupId, name) => {
+    await window.electronAPI.team.renameGroup(groupId, name);
+    await get().fetchTeams();
   },
 
   addMember: async (teamId, jiraAccountId, displayName, email) => {

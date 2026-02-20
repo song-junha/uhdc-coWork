@@ -1,10 +1,14 @@
-import { ChevronLeft, UserPlus, UserMinus, Archive } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ChevronLeft, UserPlus, UserMinus, Trash2, Pencil, Check, X } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useTeamStore } from './useTeamStore';
 
 export default function MemberList() {
   const { t } = useI18n();
-  const { teams, activeTeamId, members, user, removeMember, archiveGroup, setView } = useTeamStore();
+  const { teams, activeTeamId, members, user, removeMember, deleteGroup, renameGroup, setView } = useTeamStore();
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const team = teams.find(te => te.id === activeTeamId);
   if (!team) return null;
@@ -16,9 +20,35 @@ export default function MemberList() {
     await removeMember(activeTeamId, memberId);
   };
 
-  const handleArchive = async () => {
-    if (!activeTeamId || !confirm(t('team.archiveConfirm'))) return;
-    await archiveGroup(activeTeamId);
+  const handleDelete = async () => {
+    if (!activeTeamId || !confirm(t('team.deleteConfirm'))) return;
+    await deleteGroup(activeTeamId);
+  };
+
+  const startRename = () => {
+    setEditName(team.name);
+    setEditing(true);
+  };
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  const confirmRename = async () => {
+    if (!activeTeamId || !editName.trim() || editName.trim() === team.name) {
+      setEditing(false);
+      return;
+    }
+    await renameGroup(activeTeamId, editName.trim());
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') confirmRename();
+    if (e.key === 'Escape') setEditing(false);
   };
 
   return (
@@ -29,15 +59,38 @@ export default function MemberList() {
           <ChevronLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-[var(--text)] truncate">{team.name}</p>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-            {team.type === 'default' ? t('team.defaultTeam') : 'Spot'}
-          </span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <input
+                ref={inputRef}
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={() => setEditing(false)}
+                className="flex-1 px-2 py-0.5 text-sm bg-[var(--surface)] border border-[var(--primary)] rounded text-[var(--text)] outline-none"
+              />
+              <button onMouseDown={confirmRename} className="text-green-500 p-0.5"><Check size={14} /></button>
+              <button onMouseDown={() => setEditing(false)} className="text-[var(--text-secondary)] p-0.5"><X size={14} /></button>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-[var(--text)] truncate">{team.name}</p>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
+                {team.type === 'default' ? t('team.defaultTeam') : 'Spot'}
+              </span>
+            </>
+          )}
         </div>
-        {isAdmin && team.type === 'spot' && (
-          <button onClick={handleArchive} className="text-[var(--text-secondary)] hover:text-orange-500 transition-colors" title={t('team.archive')}>
-            <Archive size={14} />
-          </button>
+        {isAdmin && team.type === 'spot' && !editing && (
+          <div className="flex items-center gap-1">
+            <button onClick={startRename} className="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors p-1" title={t('team.renameGroup')}>
+              <Pencil size={13} />
+            </button>
+            <button onClick={handleDelete} className="text-[var(--text-secondary)] hover:text-red-500 transition-colors p-1" title={t('team.deleteGroup')}>
+              <Trash2 size={13} />
+            </button>
+          </div>
         )}
       </div>
 

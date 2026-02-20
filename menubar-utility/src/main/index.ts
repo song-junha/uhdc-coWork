@@ -13,6 +13,12 @@ if (process.platform === 'win32') {
 
 const isDev = !app.isPackaged;
 
+// IPC 핸들러를 menubar보다 먼저 등록 (preloadWindow: true이므로 윈도우가 먼저 로드됨)
+app.on('ready', () => {
+  initDatabase();
+  registerIpcHandlers();
+});
+
 const mb = menubar({
   index: isDev
     ? 'http://localhost:5173/index.html'
@@ -33,12 +39,6 @@ const mb = menubar({
   preloadWindow: true,
   showDockIcon: false,
   showOnAllWorkspaces: false,
-});
-
-// Initialize database & IPC early so preloadWindow can use them
-app.on('ready', () => {
-  initDatabase();
-  registerIpcHandlers();
 });
 
 mb.on('ready', () => {
