@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Plus, ExternalLink, Settings, Ticket, KeyRound, ChevronDown, ChevronUp, X, RefreshCw, Circle } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useJiraStore } from './useJiraStore';
+import AssigneeSelector, { type SelectedAssignee } from '../../components/AssigneeSelector';
 import type { JiraSearchIssue } from '../../../shared/types/jira.types';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -345,8 +346,7 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
   const [summary, setSummary] = useState('');
   const [description, setDescription] = useState('');
   const [inquiryTypeId, setInquiryTypeId] = useState('');
-  const [assigneeId, setAssigneeId] = useState('');
-  const [assigneeName, setAssigneeName] = useState('');
+  const [selectedAssignees, setSelectedAssignees] = useState<SelectedAssignee[]>([]);
   const [dueDate, setDueDate] = useState(today);
   const [workDays, setWorkDays] = useState('0.1');
   const [submitting, setSubmitting] = useState(false);
@@ -357,8 +357,7 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
     (async () => {
       try {
         const myself = await window.electronAPI.jira.getMyself();
-        setAssigneeId(myself.accountId);
-        setAssigneeName(myself.displayName);
+        setSelectedAssignees([{ jiraAccountId: myself.accountId, displayName: myself.displayName }]);
       } catch { /* ignore */ }
     })();
   }, []);
@@ -381,7 +380,7 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, projectKey, issueTypeId, summary]);
+  }, [onClose, projectKey, issueTypeId, summary, selectedAssignees]);
 
   const handleProjectChange = async (key: string) => {
     setProjectKey(key);
@@ -397,11 +396,16 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
       if (inquiryTypeId) customFields.customfield_10890 = { id: inquiryTypeId };
       if (dueDate) customFields.customfield_10267 = dueDate;
       if (workDays) customFields.customfield_10126 = parseFloat(workDays) || 0.1;
-      await window.electronAPI.jira.createTicket({
-        projectKey, issueTypeId, summary, description,
-        assigneeId: assigneeId || undefined,
-        customFields,
-      });
+
+      // Bulk creation: one ticket per selected assignee
+      const assignees = selectedAssignees.length > 0 ? selectedAssignees : [null];
+      for (const assignee of assignees) {
+        await window.electronAPI.jira.createTicket({
+          projectKey, issueTypeId, summary, description,
+          assigneeId: assignee?.jiraAccountId || undefined,
+          customFields,
+        });
+      }
       onClose();
     } catch (err) {
       alert('Failed: ' + (err as Error).message);
@@ -409,6 +413,9 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
       setSubmitting(false);
     }
   };
+
+  const bulkCount = selectedAssignees.length;
+  const showBulkLabel = bulkCount >= 2;
 
   return (
     <div className="absolute inset-0 bg-[var(--bg)] z-20 flex flex-col p-3 overflow-y-auto">
@@ -435,8 +442,11 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
         <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('jira.description')} rows={3} className="w-full px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md resize-none" />
         <div className="flex gap-2">
           <div className="flex-1">
-            <label className="text-[10px] text-[var(--text-secondary)]">담당자</label>
-            <input value={assigneeName || '...'} readOnly className="w-full mt-0.5 px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md text-[var(--text-secondary)]" />
+            <AssigneeSelector
+              mode="multi"
+              selected={selectedAssignees}
+              onChange={setSelectedAssignees}
+            />
           </div>
           <div className="flex-1">
             <label className="text-[10px] text-[var(--text-secondary)]">실공수(Day)</label>
@@ -449,7 +459,12 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
         </div>
       </div>
       <button onClick={handleSubmit} disabled={!projectKey || !issueTypeId || !summary || submitting} className="w-full py-2 mt-3 text-sm font-medium text-white bg-[var(--primary)] rounded-md disabled:opacity-40">
-        {submitting ? t('jira.creating') : t('jira.create')}
+        {submitting
+          ? t('jira.creating')
+          : showBulkLabel
+            ? t('jira.createBulk', { count: bulkCount })
+            : t('jira.create')
+        }
       </button>
     </div>
   );

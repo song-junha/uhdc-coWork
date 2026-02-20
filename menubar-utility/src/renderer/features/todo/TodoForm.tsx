@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, User } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useTodoStore } from './useTodoStore';
+import AssigneeSelector, { type SelectedAssignee } from '../../components/AssigneeSelector';
 import type { Todo } from '../../../shared/types/todo.types';
 
 interface TodoFormProps {
@@ -16,10 +17,14 @@ export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
   const [description, setDescription] = useState(existingTodo?.description ?? '');
   const [priority, setPriority] = useState(existingTodo?.priority ?? 'medium');
   const [dueDate, setDueDate] = useState(existingTodo?.dueDate ?? '');
-  const [assigneeName, setAssigneeName] = useState(existingTodo?.assigneeName ?? '');
-  const [recentAssignees, setRecentAssignees] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const [selectedAssignees, setSelectedAssignees] = useState<SelectedAssignee[]>(() => {
+    if (existingTodo?.assigneeName) {
+      return [{ jiraAccountId: existingTodo.assigneeId ?? '', displayName: existingTodo.assigneeName }];
+    }
+    return [];
+  });
+
+  const isEdit = !!existingTodo;
 
   useEffect(() => {
     if (existingTodo) {
@@ -27,13 +32,16 @@ export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
       setDescription(existingTodo.description);
       setPriority(existingTodo.priority);
       setDueDate(existingTodo.dueDate ?? '');
-      setAssigneeName(existingTodo.assigneeName ?? '');
+      if (existingTodo.assigneeName) {
+        setSelectedAssignees([{
+          jiraAccountId: existingTodo.assigneeId ?? '',
+          displayName: existingTodo.assigneeName,
+        }]);
+      } else {
+        setSelectedAssignees([]);
+      }
     }
   }, [existingTodo]);
-
-  useEffect(() => {
-    window.electronAPI.todo.getRecentAssignees().then(setRecentAssignees);
-  }, []);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -49,52 +57,46 @@ export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  // Close suggestions on outside click
-  useEffect(() => {
-    if (!showSuggestions) return;
-    const handleClick = (e: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [showSuggestions]);
-
-  const filteredSuggestions = recentAssignees.filter(
-    name => name.toLowerCase().includes(assigneeName.toLowerCase()) && name !== assigneeName
-  );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    if (existingTodo) {
+    if (isEdit) {
+      const assignee = selectedAssignees[0];
       await updateTodo(existingTodo.id, {
         title: title.trim(),
         description,
         priority,
         dueDate: dueDate || null,
-        assigneeName: assigneeName.trim(),
+        assigneeName: assignee?.displayName ?? '',
+        assigneeId: assignee?.jiraAccountId || null,
       });
     } else {
-      await createTodo({
-        title: title.trim(),
-        description,
-        priority,
-        dueDate: dueDate || undefined,
-        assigneeName: assigneeName.trim() || undefined,
-      });
+      // Bulk creation: one todo per selected assignee (or one with no assignee)
+      const assignees = selectedAssignees.length > 0 ? selectedAssignees : [null];
+      for (const assignee of assignees) {
+        await createTodo({
+          title: title.trim(),
+          description,
+          priority,
+          dueDate: dueDate || undefined,
+          assigneeName: assignee?.displayName || undefined,
+          assigneeId: assignee?.jiraAccountId || undefined,
+        });
+      }
     }
 
     onClose();
   };
 
+  const bulkCount = selectedAssignees.length;
+  const showBulkLabel = !isEdit && bulkCount >= 2;
+
   return (
     <div className="absolute inset-x-0 bottom-0 bg-[var(--bg)] border-t border-[var(--border)] p-3 shadow-lg z-10">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold">
-          {existingTodo ? t('todo.edit') : t('todo.new')}
+          {isEdit ? t('todo.edit') : t('todo.new')}
         </h3>
         <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text)]">
           <X size={16} />
@@ -120,35 +122,11 @@ export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
         />
 
         {/* Assignee field */}
-        <div className="relative" ref={suggestionsRef}>
-          <label className="text-[10px] text-[var(--text-secondary)]">{t('todo.assignee')}</label>
-          <div className="relative mt-0.5">
-            <User size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
-            <input
-              type="text"
-              value={assigneeName}
-              onChange={(e) => { setAssigneeName(e.target.value); setShowSuggestions(true); }}
-              onFocus={() => setShowSuggestions(true)}
-              placeholder={t('todo.assigneePlaceholder')}
-              className="w-full pl-7 pr-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md"
-            />
-          </div>
-          {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-0.5 z-30 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg max-h-28 overflow-y-auto">
-              {filteredSuggestions.map(name => (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => { setAssigneeName(name); setShowSuggestions(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] hover:bg-[var(--surface)] text-left"
-                >
-                  <User size={12} className="text-[var(--text-secondary)]" />
-                  {name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <AssigneeSelector
+          mode={isEdit ? 'single' : 'multi'}
+          selected={selectedAssignees}
+          onChange={setSelectedAssignees}
+        />
 
         <div className="flex gap-2">
           <select
@@ -178,7 +156,12 @@ export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
           disabled={!title.trim()}
           className="w-full py-1.5 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] rounded-md disabled:opacity-40 transition-colors"
         >
-          {existingTodo ? t('todo.update') : t('todo.add')}
+          {isEdit
+            ? t('todo.update')
+            : showBulkLabel
+              ? t('todo.addBulk', { count: bulkCount })
+              : t('todo.add')
+          }
         </button>
       </form>
     </div>
