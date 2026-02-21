@@ -69,6 +69,14 @@ export function registerJiraHandlers(): void {
   ipcMain.handle('jira:searchUsers', async (_event, query: string) => {
     return getJiraService().searchUsers(query);
   });
+
+  ipcMain.handle('jira:getTransitions', async (_event, issueKey: string) => {
+    return getJiraService().getTransitions(issueKey);
+  });
+
+  ipcMain.handle('jira:doTransition', async (_event, issueKey: string, transitionId: string) => {
+    return getJiraService().doTransition(issueKey, transitionId);
+  });
 }
 
 export function resetJiraService(): void {

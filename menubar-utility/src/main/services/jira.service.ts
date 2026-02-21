@@ -1,6 +1,6 @@
 import { safeStorage } from 'electron';
 import * as settingsRepo from '../db/settings.repo';
-import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser } from '../../shared/types/jira.types';
+import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser, JiraTransition } from '../../shared/types/jira.types';
 
 interface CacheEntry<T> {
   data: T;
@@ -66,6 +66,7 @@ export class JiraService {
       throw new Error(`Jira API error (${response.status}): ${body}`);
     }
 
+    if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
   }
 
@@ -160,6 +161,24 @@ export class JiraService {
         emailAddress: u.emailAddress,
         avatarUrl: u.avatarUrls?.['24x24'],
       }));
+  }
+
+  async getTransitions(issueKey: string): Promise<JiraTransition[]> {
+    const data = await this.request<{ transitions: JiraTransition[] }>(
+      `/rest/api/3/issue/${issueKey}/transitions`
+    );
+    return data.transitions.map(t => ({
+      id: t.id,
+      name: t.name,
+      to: { name: t.to.name, statusCategory: { key: t.to.statusCategory.key } },
+    }));
+  }
+
+  async doTransition(issueKey: string, transitionId: string): Promise<void> {
+    await this.request<void>(`/rest/api/3/issue/${issueKey}/transitions`, {
+      method: 'POST',
+      body: JSON.stringify({ transition: { id: transitionId } }),
+    });
   }
 
   async testConnection(): Promise<boolean> {

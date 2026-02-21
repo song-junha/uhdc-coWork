@@ -6,6 +6,8 @@ import {
   pullMemoFolders,
   pushMemos,
   pullMemos,
+  pushCalendarEvents,
+  pullCalendarEvents,
   pushAllPersonal,
   pullAllPersonal,
 } from '../services/sync.service';
@@ -33,6 +35,14 @@ export function registerSyncHandlers(): void {
 
   ipcMain.handle('sync:pullMemos', async (): Promise<void> => {
     return pullMemos();
+  });
+
+  ipcMain.handle('sync:pushCalendarEvents', async (): Promise<void> => {
+    return pushCalendarEvents();
+  });
+
+  ipcMain.handle('sync:pullCalendarEvents', async (): Promise<void> => {
+    return pullCalendarEvents();
   });
 
   ipcMain.handle('sync:pushAllPersonal', async (): Promise<void> => {

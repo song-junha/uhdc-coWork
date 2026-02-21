@@ -84,7 +84,26 @@ export default function CalendarTab() {
         <button onClick={() => navigateMonth(-1)} className="p-1 hover:bg-[var(--surface)] rounded">
           <ChevronLeft size={16} />
         </button>
-        <span className="text-sm font-semibold">{monthLabel}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold">{monthLabel}</span>
+          {(selectedDate !== today || currentYear !== new Date().getFullYear() || currentMonth !== new Date().getMonth() + 1) && (
+            <button
+              onClick={() => {
+                const n = new Date();
+                useCalendarStore.setState({
+                  currentYear: n.getFullYear(),
+                  currentMonth: n.getMonth() + 1,
+                  selectedDate: n.toISOString().split('T')[0],
+                });
+                fetchEvents();
+                fetchTodayAlerts();
+              }}
+              className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--primary)] bg-[var(--primary)]/10 rounded hover:bg-[var(--primary)]/20 transition-colors"
+            >
+              {t('calendar.today')}
+            </button>
+          )}
+        </div>
         <button onClick={() => navigateMonth(1)} className="p-1 hover:bg-[var(--surface)] rounded">
           <ChevronRight size={16} />
         </button>

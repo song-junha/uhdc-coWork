@@ -129,16 +129,19 @@ export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
         />
 
         <div className="flex gap-2">
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Todo['priority'])}
-            className="flex-1 px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md"
-          >
-            <option value="low">{t('todo.priority.low')}</option>
-            <option value="medium">{t('todo.priority.medium')}</option>
-            <option value="high">{t('todo.priority.high')}</option>
-            <option value="urgent">{t('todo.priority.urgent')}</option>
-          </select>
+          <div className="flex-1">
+            <label className="text-[10px] text-[var(--text-secondary)]">{t('todo.priority')}</label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as Todo['priority'])}
+              className="w-full px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md"
+            >
+              <option value="low">{t('todo.priority.low')}</option>
+              <option value="medium">{t('todo.priority.medium')}</option>
+              <option value="high">{t('todo.priority.high')}</option>
+              <option value="urgent">{t('todo.priority.urgent')}</option>
+            </select>
+          </div>
 
           <div className="flex-1">
             <label className="text-[10px] text-[var(--text-secondary)]">{t('todo.dueDate')}</label>

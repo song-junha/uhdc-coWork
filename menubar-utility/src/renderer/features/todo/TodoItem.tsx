@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '../../lib/utils';
-import { Circle, CheckCircle2, Trash2, GripVertical } from 'lucide-react';
+import { Circle, CheckCircle2, Clock, Trash2, GripVertical } from 'lucide-react';
 import type { Todo } from '../../../shared/types/todo.types';
 import { useTodoStore } from './useTodoStore';
 import { useI18n } from '../../hooks/useI18n';
@@ -10,17 +10,17 @@ import { CSS } from '@dnd-kit/utilities';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
 const priorityColors = {
-  low: 'text-[var(--text-secondary)]',
-  medium: 'text-[var(--primary)]',
-  high: 'text-[var(--warning)]',
-  urgent: 'text-[var(--danger)]',
+  low: 'text-[var(--text-secondary)] bg-[var(--text-secondary)]/10',
+  medium: 'text-[var(--primary)] bg-[var(--primary)]/10',
+  high: 'text-[var(--warning)] bg-[var(--warning)]/10',
+  urgent: 'text-[var(--danger)] bg-[var(--danger)]/10',
 };
 
 const priorityLabelKeys: Record<Todo['priority'], TranslationKey> = {
-  low: 'todo.priority.low.short',
-  medium: 'todo.priority.medium.short',
-  high: 'todo.priority.high.short',
-  urgent: 'todo.priority.urgent.short',
+  low: 'todo.priority.low',
+  medium: 'todo.priority.medium',
+  high: 'todo.priority.high',
+  urgent: 'todo.priority.urgent',
 };
 
 interface TodoItemProps {
@@ -50,8 +50,12 @@ export default function TodoItem({ todo }: TodoItemProps) {
 
   const toggleStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newStatus = todo.status === 'done' ? 'todo' : 'done';
-    updateTodo(todo.id, { status: newStatus });
+    const next: Record<Todo['status'], Todo['status']> = {
+      todo: 'in_progress',
+      in_progress: 'done',
+      done: 'todo',
+    };
+    updateTodo(todo.id, { status: next[todo.status] });
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -60,6 +64,7 @@ export default function TodoItem({ todo }: TodoItemProps) {
   };
 
   const isDone = todo.status === 'done';
+  const isInProgress = todo.status === 'in_progress';
 
   return (
     <div
@@ -79,6 +84,8 @@ export default function TodoItem({ todo }: TodoItemProps) {
       <button onClick={toggleStatus} className="shrink-0">
         {isDone ? (
           <CheckCircle2 size={18} className="text-[var(--success)]" />
+        ) : isInProgress ? (
+          <Clock size={18} className="text-[var(--primary)]" />
         ) : (
           <Circle size={18} className="text-[var(--border)] hover:text-[var(--primary)]" />
         )}
@@ -93,14 +100,20 @@ export default function TodoItem({ todo }: TodoItemProps) {
             <span className="text-[10px] text-[var(--primary)]">@{todo.assigneeName}</span>
           )}
           {todo.dueDate && (
-            <span className="text-[11px] text-[var(--text-secondary)]">{todo.dueDate}</span>
+            <span className={cn(
+              'text-[11px]',
+              !isDone && todo.dueDate < new Date().toISOString().split('T')[0]
+                ? 'text-[var(--danger)] font-semibold'
+                : 'text-[var(--text-secondary)]'
+            )}>
+              {todo.dueDate}
+            </span>
           )}
+          <span className={cn('text-[10px] font-semibold px-1 py-0.5 rounded', priorityColors[todo.priority])}>
+            {t(priorityLabelKeys[todo.priority])}
+          </span>
         </div>
       </div>
-
-      <span className={cn('text-[10px] font-semibold', priorityColors[todo.priority])}>
-        {t(priorityLabelKeys[todo.priority])}
-      </span>
 
       <button
         onClick={handleDelete}

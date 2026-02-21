@@ -3,6 +3,7 @@ import * as calendarRepo from '../db/calendar.repo';
 import type { CalendarEvent } from '../../shared/types/calendar.types';
 
 let intervalId: ReturnType<typeof setInterval> | null = null;
+let clearIntervalId: ReturnType<typeof setInterval> | null = null;
 const firedThisMinute = new Set<string>();
 
 function shouldAlertNow(event: CalendarEvent): boolean {
@@ -63,7 +64,7 @@ export function startScheduler(): void {
   }, 30 * 1000);
 
   // Clear fired set every minute to allow next-minute alerts
-  setInterval(() => {
+  clearIntervalId = setInterval(() => {
     firedThisMinute.clear();
   }, 60 * 1000);
 
@@ -76,4 +77,9 @@ export function stopScheduler(): void {
     clearInterval(intervalId);
     intervalId = null;
   }
+  if (clearIntervalId) {
+    clearInterval(clearIntervalId);
+    clearIntervalId = null;
+  }
+  firedThisMinute.clear();
 }

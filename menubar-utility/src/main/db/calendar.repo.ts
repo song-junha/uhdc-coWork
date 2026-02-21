@@ -1,7 +1,7 @@
 import { getDatabase } from './index';
 import type { CalendarEvent, CreateEventDto, UpdateEventDto } from '../../shared/types/calendar.types';
 
-function rowToEvent(row: Record<string, unknown>): CalendarEvent {
+export function rowToEvent(row: Record<string, unknown>): CalendarEvent {
   return {
     id: row.id as string,
     title: row.title as string,
@@ -12,7 +12,10 @@ function rowToEvent(row: Record<string, unknown>): CalendarEvent {
     alertBefore: row.alert_before as number,
     isSnoozed: (row.is_snoozed as number) === 1,
     snoozeUntil: row.snooze_until as string | null,
+    remoteId: (row.remote_id as string) ?? null,
+    syncedAt: (row.synced_at as string) ?? null,
     createdAt: row.created_at as string,
+    updatedAt: (row.updated_at as string) ?? row.created_at as string,
   };
 }
 
@@ -140,6 +143,7 @@ export function updateEvent(id: string, data: UpdateEventDto): CalendarEvent {
 
   // Reset snooze when event is updated
   sets.push('is_snoozed = 0', 'snooze_until = NULL');
+  sets.push("updated_at = datetime('now')");
 
   if (sets.length > 0) {
     params.push(id);
@@ -195,4 +199,10 @@ export function snoozeEvent(id: string, minutes: number): void {
   getDatabase().prepare(
     'UPDATE calendar_events SET is_snoozed = 1, snooze_until = ? WHERE id = ?'
   ).run(snoozeUntil, id);
+}
+
+/** Get all calendar events (for sync) */
+export function getAllEvents(): CalendarEvent[] {
+  const rows = getDatabase().prepare('SELECT * FROM calendar_events').all() as Record<string, unknown>[];
+  return rows.map(rowToEvent);
 }

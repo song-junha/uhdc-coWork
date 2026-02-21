@@ -24,6 +24,15 @@ interface CalendarStore {
 
 const now = new Date();
 
+async function syncCalendarIfEnabled(): Promise<void> {
+  try {
+    const enabled = await window.electronAPI.settings.get('cloud_sync_enabled');
+    if (enabled === 'true') {
+      window.electronAPI.sync.pushCalendarEvents().catch(() => {});
+    }
+  } catch {}
+}
+
 export const useCalendarStore = create<CalendarStore>((set, get) => ({
   events: [],
   todayAlerts: [],
@@ -48,23 +57,27 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
     await window.electronAPI.calendar.createEvent(data);
     await get().fetchEvents();
     await get().fetchTodayAlerts();
+    syncCalendarIfEnabled();
   },
 
   updateEvent: async (id, data) => {
     await window.electronAPI.calendar.updateEvent(id, data);
     await get().fetchEvents();
     await get().fetchTodayAlerts();
+    syncCalendarIfEnabled();
   },
 
   deleteEvent: async (id) => {
     await window.electronAPI.calendar.deleteEvent(id);
     await get().fetchEvents();
     await get().fetchTodayAlerts();
+    syncCalendarIfEnabled();
   },
 
   snoozeEvent: async (id, minutes) => {
     await window.electronAPI.calendar.snooze(id, minutes);
     await get().fetchTodayAlerts();
+    syncCalendarIfEnabled();
   },
 
   setSelectedDate: (date) => set({ selectedDate: date }),
@@ -84,3 +97,11 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   setShowEventForm: (show) => set({ showEventForm: show }),
   setEditingEvent: (event) => set({ editingEvent: event, showEventForm: !!event }),
 }));
+
+// Realtime listener: when calendar changes from another device
+window.electronAPI?.on('personal:calendar-updated', () => {
+  window.electronAPI.sync.pullCalendarEvents().then(() => {
+    useCalendarStore.getState().fetchEvents();
+    useCalendarStore.getState().fetchTodayAlerts();
+  }).catch(() => {});
+});

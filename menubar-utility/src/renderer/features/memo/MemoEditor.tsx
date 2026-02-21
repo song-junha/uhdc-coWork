@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useMemoStore } from './useMemoStore';
 import type { Memo } from '../../../shared/types/memo.types';
@@ -12,18 +12,26 @@ export default function MemoEditor({ memo }: MemoEditorProps) {
   const { updateMemo } = useMemoStore();
   const [title, setTitle] = useState(memo.title);
   const [content, setContent] = useState(memo.content);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setTitle(memo.title);
     setContent(memo.content);
   }, [memo.id]);
 
-  const saveDebounced = useCallback(
-    debounce((id: string, data: { title?: string; content?: string }) => {
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const saveDebounced = useCallback((id: string, data: { title?: string; content?: string }) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       updateMemo(id, data);
-    }, 500),
-    []
-  );
+    }, 500);
+  }, [updateMemo]);
 
   const handleTitleChange = (value: string) => {
     setTitle(value);
@@ -54,12 +62,4 @@ export default function MemoEditor({ memo }: MemoEditorProps) {
       </div>
     </div>
   );
-}
-
-function debounce<T extends (...args: Parameters<T>) => void>(fn: T, ms: number) {
-  let timer: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
-  };
 }

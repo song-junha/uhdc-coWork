@@ -3,7 +3,7 @@ import { Plus, ExternalLink, Settings, Ticket, KeyRound, ChevronDown, ChevronUp,
 import { useI18n } from '../../hooks/useI18n';
 import { useJiraStore } from './useJiraStore';
 import AssigneeSelector, { type SelectedAssignee } from '../../components/AssigneeSelector';
-import type { JiraSearchIssue } from '../../../shared/types/jira.types';
+import type { JiraSearchIssue, JiraTransition } from '../../../shared/types/jira.types';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -147,12 +147,16 @@ function CreatedTab() {
   );
 }
 
-function TicketItem({ issue }: { issue: JiraSearchIssue }) {
+function TicketItem({ issue, onTransitioned }: { issue: JiraSearchIssue; onTransitioned?: () => void }) {
   const statusName = issue.fields.status.name;
   const categoryKey = issue.fields.status.statusCategory.key;
   const statusColor = categoryKey === 'done' ? 'text-green-500'
     : categoryKey === 'indeterminate' ? 'text-blue-500'
     : 'text-[var(--text-secondary)]';
+
+  const [transitions, setTransitions] = useState<JiraTransition[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleOpen = () => {
     const baseUrl = window.electronAPI.settings.get('jira_base_url');
@@ -161,13 +165,42 @@ function TicketItem({ issue }: { issue: JiraSearchIssue }) {
     });
   };
 
+  const handleStatusClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (showMenu) { setShowMenu(false); return; }
+    setLoading(true);
+    try {
+      const t = await window.electronAPI.jira.getTransitions(issue.key);
+      setTransitions(t);
+      setShowMenu(true);
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
+  const handleTransition = async (transitionId: string) => {
+    setShowMenu(false);
+    setLoading(true);
+    try {
+      await window.electronAPI.jira.doTransition(issue.key, transitionId);
+      onTransitioned?.();
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
   return (
-    <div className="group flex items-center gap-2 py-2 border-b border-[var(--border)]">
-      <Circle size={8} className={`${statusColor} shrink-0 fill-current`} />
+    <div className="group flex items-center gap-2 py-2 border-b border-[var(--border)] relative">
+      <button onClick={handleStatusClick} className="shrink-0" title="Change status">
+        <Circle size={8} className={`${statusColor} fill-current ${loading ? 'animate-pulse' : ''}`} />
+      </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="text-[12px] font-mono font-medium text-[var(--primary)]">{issue.key}</span>
-          <span className={`text-[10px] ${statusColor}`}>{statusName}</span>
+          <button
+            onClick={handleStatusClick}
+            className={`text-[10px] ${statusColor} hover:underline cursor-pointer`}
+          >
+            {statusName}
+          </button>
         </div>
         <p className="text-[12px] truncate">{issue.fields.summary}</p>
       </div>
@@ -177,13 +210,33 @@ function TicketItem({ issue }: { issue: JiraSearchIssue }) {
       >
         <ExternalLink size={12} />
       </button>
+
+      {showMenu && transitions.length > 0 && (
+        <div className="absolute left-4 top-full z-30 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[140px]">
+          {transitions.map(tr => {
+            const trColor = tr.to.statusCategory.key === 'done' ? 'text-green-500'
+              : tr.to.statusCategory.key === 'indeterminate' ? 'text-blue-500'
+              : 'text-[var(--text-secondary)]';
+            return (
+              <button
+                key={tr.id}
+                onClick={() => handleTransition(tr.id)}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-[var(--surface)] transition-colors"
+              >
+                <Circle size={6} className={`${trColor} fill-current`} />
+                <span>{tr.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 function OpenTab() {
   const { t } = useI18n();
-  const { openTickets, ticketsLoading } = useJiraStore();
+  const { openTickets, ticketsLoading, fetchMyTickets } = useJiraStore();
 
   if (ticketsLoading && openTickets.length === 0) {
     return <p className="text-sm text-[var(--text-secondary)] text-center py-4">{t('jira.loadingTickets')}</p>;
@@ -195,7 +248,7 @@ function OpenTab() {
   return (
     <>
       {openTickets.map(issue => (
-        <TicketItem key={issue.key} issue={issue} />
+        <TicketItem key={issue.key} issue={issue} onTransitioned={fetchMyTickets} />
       ))}
     </>
   );
@@ -203,7 +256,7 @@ function OpenTab() {
 
 function DoneTab() {
   const { t } = useI18n();
-  const { doneTickets, ticketsLoading } = useJiraStore();
+  const { doneTickets, ticketsLoading, fetchMyTickets } = useJiraStore();
 
   if (ticketsLoading && doneTickets.length === 0) {
     return <p className="text-sm text-[var(--text-secondary)] text-center py-4">{t('jira.loadingTickets')}</p>;
@@ -215,7 +268,7 @@ function DoneTab() {
   return (
     <>
       {doneTickets.map(issue => (
-        <TicketItem key={issue.key} issue={issue} />
+        <TicketItem key={issue.key} issue={issue} onTransitioned={fetchMyTickets} />
       ))}
     </>
   );

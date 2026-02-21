@@ -345,6 +345,12 @@ export class SupabaseService {
         table: 'user_memos',
         filter: `user_id=eq.${userId}`,
       }, (payload) => callback('personal:memo-updated', payload))
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_calendar_events',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => callback('personal:calendar-updated', payload))
       .subscribe();
   }
 

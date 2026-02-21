@@ -18,6 +18,7 @@ export const en = {
   'common.settings': 'Settings',
   'common.profile': 'Profile',
   'common.confirm': 'Confirm',
+  'common.retry': 'Retry',
   'common.confirmDelete': 'Delete this item?',
   'common.confirmDeleteDesc': 'This action cannot be undone.',
 
@@ -35,6 +36,7 @@ export const en = {
   'todo.filter.todo': 'To Do',
   'todo.filter.inProgress': 'In Progress',
   'todo.filter.done': 'Done',
+  'todo.priority': 'Priority',
   'todo.priority.low': 'Low',
   'todo.priority.medium': 'Medium',
   'todo.priority.high': 'High',
@@ -125,6 +127,7 @@ export const en = {
   'calendar.snooze5': '5 min',
   'calendar.snooze15': '15 min',
   'calendar.snooze30': '30 min',
+  'calendar.today': 'Today',
   'calendar.noAlerts': 'No alerts scheduled for today',
 
   // Team
@@ -162,6 +165,7 @@ export const en = {
   'auth.switchToSignUp': "Don't have an account? Sign up",
   'auth.switchToSignIn': 'Already have an account? Sign in',
   'auth.error': 'Authentication error',
+  'auth.supabaseAuthFailed': 'Supabase auth failed. Disable Email Confirm in Supabase Dashboard.',
 
   // Add Member
   'team.addMember': 'Add Member',

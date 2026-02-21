@@ -8,7 +8,10 @@ export interface CalendarEvent {
   alertBefore: number;
   isSnoozed: boolean;
   snoozeUntil: string | null;
+  remoteId: string | null;
+  syncedAt: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateEventDto {

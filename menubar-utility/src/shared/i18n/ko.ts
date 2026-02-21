@@ -18,6 +18,7 @@ export const ko = {
   'common.settings': '설정',
   'common.profile': '프로필',
   'common.confirm': '확인',
+  'common.retry': '다시 시도',
   'common.confirmDelete': '정말 삭제하시겠습니까?',
   'common.confirmDeleteDesc': '이 항목을 삭제하면 복구할 수 없습니다.',
 
@@ -35,6 +36,7 @@ export const ko = {
   'todo.filter.todo': '할 일',
   'todo.filter.inProgress': '진행 중',
   'todo.filter.done': '완료',
+  'todo.priority': '중요도',
   'todo.priority.low': '낮음',
   'todo.priority.medium': '보통',
   'todo.priority.high': '높음',
@@ -125,6 +127,7 @@ export const ko = {
   'calendar.snooze5': '5분 후',
   'calendar.snooze15': '15분 후',
   'calendar.snooze30': '30분 후',
+  'calendar.today': '오늘',
   'calendar.noAlerts': '오늘 예정된 알림이 없습니다',
 
   // Team
@@ -162,6 +165,7 @@ export const ko = {
   'auth.switchToSignUp': '계정이 없으신가요? 회원가입',
   'auth.switchToSignIn': '이미 계정이 있으신가요? 로그인',
   'auth.error': '인증 오류',
+  'auth.supabaseAuthFailed': 'Supabase 인증 실패. Supabase Dashboard에서 Email Confirm을 비활성화하세요.',
 
   // Add Member
   'team.addMember': '멤버 등록',

@@ -1,9 +1,11 @@
 import { getDatabase } from '../db/index';
 import { supabaseService } from './supabase.service';
 import { rowToFolder, rowToMemo } from '../db/memo.repo';
+import { rowToEvent } from '../db/calendar.repo';
 import * as settingsRepo from '../db/settings.repo';
 import type { Todo } from '../../shared/types/todo.types';
 import type { MemoFolder, Memo } from '../../shared/types/memo.types';
+import type { CalendarEvent } from '../../shared/types/calendar.types';
 
 function rowToTodo(row: Record<string, unknown>): Todo {
   return {
@@ -620,16 +622,165 @@ export async function pullMemos(): Promise<void> {
   }
 }
 
-/** Push all personal data (todos + folders + memos) */
+/** Push calendar events to user_calendar_events */
+export async function pushCalendarEvents(): Promise<void> {
+  if (!supabaseService.isConfigured()) return;
+
+  const db = getDatabase();
+  const client = supabaseService.getClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return;
+
+  const rows = db.prepare(
+    `SELECT * FROM calendar_events WHERE (synced_at IS NULL OR updated_at > synced_at)`
+  ).all();
+
+  for (const row of rows) {
+    const event = rowToEvent(row as Record<string, unknown>);
+    const remoteData = {
+      user_id: user.id,
+      local_id: event.id,
+      title: event.title,
+      memo: event.memo,
+      event_date: event.eventDate,
+      event_time: event.eventTime,
+      repeat_type: event.repeatType,
+      alert_before: event.alertBefore,
+      is_snoozed: event.isSnoozed,
+      snooze_until: event.snoozeUntil,
+      updated_at: event.updatedAt,
+    };
+
+    try {
+      if (event.remoteId) {
+        await client.from('user_calendar_events').update(remoteData).eq('id', event.remoteId);
+      } else {
+        const { data } = await client
+          .from('user_calendar_events')
+          .insert(remoteData)
+          .select('id')
+          .single();
+
+        if (data) {
+          db.prepare("UPDATE calendar_events SET remote_id = ?, synced_at = datetime('now') WHERE id = ?")
+            .run(data.id, event.id);
+          continue;
+        }
+      }
+      db.prepare("UPDATE calendar_events SET synced_at = datetime('now') WHERE id = ?").run(event.id);
+    } catch (err) {
+      console.error(`Calendar event push failed for ${event.id}:`, err);
+    }
+  }
+
+  // Handle remote deletes
+  try {
+    const { data: remoteAll } = await client
+      .from('user_calendar_events')
+      .select('id, local_id')
+      .eq('user_id', user.id);
+
+    if (remoteAll) {
+      for (const remote of remoteAll) {
+        const localExists = db.prepare('SELECT id FROM calendar_events WHERE id = ? OR remote_id = ?')
+          .get(remote.local_id, remote.id);
+        if (!localExists) {
+          await client.from('user_calendar_events').delete().eq('id', remote.id);
+        }
+      }
+    }
+  } catch {}
+}
+
+/** Pull calendar events from user_calendar_events */
+export async function pullCalendarEvents(): Promise<void> {
+  if (!supabaseService.isConfigured()) return;
+
+  const db = getDatabase();
+  const client = supabaseService.getClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return;
+
+  try {
+    const { data: remoteEvents, error } = await client
+      .from('user_calendar_events')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (error || !remoteEvents) return;
+
+    const remoteIds = new Set(remoteEvents.map(r => r.id as string));
+
+    for (const remote of remoteEvents) {
+      const localByRemoteId = db.prepare('SELECT * FROM calendar_events WHERE remote_id = ?')
+        .get(remote.id) as Record<string, unknown> | undefined;
+      const localByLocalId = remote.local_id
+        ? db.prepare('SELECT * FROM calendar_events WHERE id = ?').get(remote.local_id) as Record<string, unknown> | undefined
+        : undefined;
+
+      const local = localByRemoteId || localByLocalId;
+
+      if (local) {
+        const localUpdated = new Date(local.updated_at as string).getTime();
+        const remoteUpdated = new Date(remote.updated_at as string).getTime();
+
+        if (remoteUpdated > localUpdated) {
+          db.prepare(`
+            UPDATE calendar_events SET
+              title = ?, memo = ?, event_date = ?, event_time = ?,
+              repeat_type = ?, alert_before = ?, is_snoozed = ?, snooze_until = ?,
+              remote_id = ?, synced_at = datetime('now'), updated_at = ?
+            WHERE id = ?
+          `).run(
+            remote.title, remote.memo ?? '', remote.event_date, remote.event_time,
+            remote.repeat_type ?? 'none', remote.alert_before ?? 0,
+            remote.is_snoozed ? 1 : 0, remote.snooze_until,
+            remote.id, remote.updated_at,
+            local.id as string,
+          );
+        } else if (!local.remote_id) {
+          db.prepare("UPDATE calendar_events SET remote_id = ?, synced_at = datetime('now') WHERE id = ?")
+            .run(remote.id, local.id as string);
+        }
+      } else {
+        db.prepare(`
+          INSERT INTO calendar_events (title, memo, event_date, event_time, repeat_type, alert_before, is_snoozed, snooze_until, remote_id, synced_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?)
+        `).run(
+          remote.title, remote.memo ?? '', remote.event_date, remote.event_time,
+          remote.repeat_type ?? 'none', remote.alert_before ?? 0,
+          remote.is_snoozed ? 1 : 0, remote.snooze_until,
+          remote.id, remote.updated_at,
+        );
+      }
+    }
+
+    // Remove locally synced events that were deleted remotely
+    const localSynced = db.prepare('SELECT id, remote_id FROM calendar_events WHERE remote_id IS NOT NULL')
+      .all() as { id: string; remote_id: string }[];
+
+    for (const local of localSynced) {
+      if (!remoteIds.has(local.remote_id)) {
+        db.prepare('DELETE FROM calendar_events WHERE id = ?').run(local.id);
+      }
+    }
+  } catch (err) {
+    console.error('Calendar event pull error:', err);
+  }
+}
+
+/** Push all personal data (todos + folders + memos + calendar) */
 export async function pushAllPersonal(): Promise<void> {
   await pushPersonalTodos();
   await pushMemoFolders();
   await pushMemos();
+  await pushCalendarEvents();
 }
 
-/** Pull all personal data (todos + folders first, then memos) */
+/** Pull all personal data (todos + folders + memos + calendar) */
 export async function pullAllPersonal(): Promise<void> {
   await pullPersonalTodos();
   await pullMemoFolders();
   await pullMemos();
+  await pullCalendarEvents();
 }

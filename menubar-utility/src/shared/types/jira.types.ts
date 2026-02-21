@@ -47,6 +47,12 @@ export interface JiraSearchIssue {
   };
 }
 
+export interface JiraTransition {
+  id: string;
+  name: string;
+  to: { name: string; statusCategory: { key: string } };
+}
+
 export interface JiraConfig {
   baseUrl: string;
   email: string;

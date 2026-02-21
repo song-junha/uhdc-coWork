@@ -34,6 +34,8 @@ const api: ElectronAPI = {
     testConnection: () => ipcRenderer.invoke('jira:testConnection'),
     getMyself: () => ipcRenderer.invoke('jira:getMyself'),
     searchUsers: (query) => ipcRenderer.invoke('jira:searchUsers', query),
+    getTransitions: (issueKey) => ipcRenderer.invoke('jira:getTransitions', issueKey),
+    doTransition: (issueKey, transitionId) => ipcRenderer.invoke('jira:doTransition', issueKey, transitionId),
   },
   calendar: {
     getEvents: (year, month) => ipcRenderer.invoke('calendar:getEvents', year, month),
@@ -66,6 +68,8 @@ const api: ElectronAPI = {
     pullMemoFolders: () => ipcRenderer.invoke('sync:pullMemoFolders'),
     pushMemos: () => ipcRenderer.invoke('sync:pushMemos'),
     pullMemos: () => ipcRenderer.invoke('sync:pullMemos'),
+    pushCalendarEvents: () => ipcRenderer.invoke('sync:pushCalendarEvents'),
+    pullCalendarEvents: () => ipcRenderer.invoke('sync:pullCalendarEvents'),
     pushAllPersonal: () => ipcRenderer.invoke('sync:pushAllPersonal'),
     pullAllPersonal: () => ipcRenderer.invoke('sync:pullAllPersonal'),
   },

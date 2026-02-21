@@ -1,6 +1,6 @@
 import type { Todo, CreateTodoDto, UpdateTodoDto, TodoFilter } from './todo.types';
 import type { MemoFolder, Memo, CreateFolderDto, UpdateFolderDto, CreateMemoDto, UpdateMemoDto } from './memo.types';
-import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraHistoryItem, JiraSearchIssue, JiraUser } from './jira.types';
+import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraHistoryItem, JiraSearchIssue, JiraUser, JiraTransition } from './jira.types';
 import type { CalendarEvent, CreateEventDto, UpdateEventDto } from './calendar.types';
 import type { Team, TeamMember, CreateGroupDto, AuthUser } from './team.types';
 
@@ -37,6 +37,8 @@ export interface ElectronAPI {
     testConnection: () => Promise<boolean>;
     getMyself: () => Promise<{ accountId: string; displayName: string }>;
     searchUsers: (query: string) => Promise<JiraUser[]>;
+    getTransitions: (issueKey: string) => Promise<JiraTransition[]>;
+    doTransition: (issueKey: string, transitionId: string) => Promise<void>;
   };
   calendar: {
     getEvents: (year: number, month: number) => Promise<CalendarEvent[]>;
@@ -69,6 +71,8 @@ export interface ElectronAPI {
     pullMemoFolders: () => Promise<void>;
     pushMemos: () => Promise<void>;
     pullMemos: () => Promise<void>;
+    pushCalendarEvents: () => Promise<void>;
+    pullCalendarEvents: () => Promise<void>;
     pushAllPersonal: () => Promise<void>;
     pullAllPersonal: () => Promise<void>;
   };

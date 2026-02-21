@@ -59,7 +59,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
       if (user) {
         await get().fetchTeams();
       } else {
-        set({ error: 'Supabase 인증 실패. Supabase Dashboard에서 Email Confirm을 비활성화하세요.' });
+        set({ error: 'auth.supabaseAuthFailed' });
       }
     } catch (err) {
       set({ user: null, error: (err as Error).message });
