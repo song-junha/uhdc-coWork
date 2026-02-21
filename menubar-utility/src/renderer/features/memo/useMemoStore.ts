@@ -1,6 +1,24 @@
 import { create } from 'zustand';
 import type { MemoFolder, Memo, CreateFolderDto, CreateMemoDto, UpdateMemoDto } from '../../../shared/types/memo.types';
 
+async function syncFoldersIfEnabled(): Promise<void> {
+  try {
+    const enabled = await window.electronAPI.settings.get('cloud_sync_enabled');
+    if (enabled === 'true') {
+      window.electronAPI.sync.pushMemoFolders().catch(() => {});
+    }
+  } catch {}
+}
+
+async function syncMemosIfEnabled(): Promise<void> {
+  try {
+    const enabled = await window.electronAPI.settings.get('cloud_sync_enabled');
+    if (enabled === 'true') {
+      window.electronAPI.sync.pushMemos().catch(() => {});
+    }
+  } catch {}
+}
+
 interface MemoStore {
   folders: MemoFolder[];
   activeFolderId: string | null;
@@ -47,6 +65,7 @@ export const useMemoStore = create<MemoStore>((set, get) => ({
   createFolder: async (data) => {
     await window.electronAPI.memo.createFolder(data);
     await get().fetchFolders();
+    syncFoldersIfEnabled();
   },
 
   deleteFolder: async (id) => {
@@ -56,16 +75,20 @@ export const useMemoStore = create<MemoStore>((set, get) => ({
       set({ activeFolderId: null, memos: [], activeMemoId: null });
     }
     await get().fetchFolders();
+    syncFoldersIfEnabled();
+    syncMemosIfEnabled();
   },
 
   renameFolder: async (id, name) => {
     await window.electronAPI.memo.updateFolder(id, { name });
     await get().fetchFolders();
+    syncFoldersIfEnabled();
   },
 
   toggleFolder: async (id, isExpanded) => {
     await window.electronAPI.memo.updateFolder(id, { isExpanded });
     await get().fetchFolders();
+    // No sync for UI-only state changes
   },
 
   setActiveFolderId: (id) => {
@@ -82,17 +105,20 @@ export const useMemoStore = create<MemoStore>((set, get) => ({
     const memo = await window.electronAPI.memo.createMemo(data);
     set({ activeMemoId: memo.id });
     if (get().activeFolderId) await get().fetchMemos(get().activeFolderId!);
+    syncMemosIfEnabled();
   },
 
   updateMemo: async (id, data) => {
     await window.electronAPI.memo.updateMemo(id, data);
     if (get().activeFolderId) await get().fetchMemos(get().activeFolderId!);
+    syncMemosIfEnabled();
   },
 
   deleteMemo: async (id) => {
     await window.electronAPI.memo.deleteMemo(id);
     if (get().activeMemoId === id) set({ activeMemoId: null });
     if (get().activeFolderId) await get().fetchMemos(get().activeFolderId!);
+    syncMemosIfEnabled();
   },
 
   setActiveMemoId: (id) => set({ activeMemoId: id }),
@@ -100,11 +126,13 @@ export const useMemoStore = create<MemoStore>((set, get) => ({
   reorderMemos: async (ids) => {
     await window.electronAPI.memo.reorderMemos(ids);
     if (get().activeFolderId) await get().fetchMemos(get().activeFolderId!);
+    syncMemosIfEnabled();
   },
 
   reorderFolders: async (ids) => {
     await window.electronAPI.memo.reorderFolders(ids);
     await get().fetchFolders();
+    syncFoldersIfEnabled();
   },
 
   search: async (query) => {
@@ -119,3 +147,22 @@ export const useMemoStore = create<MemoStore>((set, get) => ({
 
   clearSearch: () => set({ searchQuery: '', searchResults: [] }),
 }));
+
+// Listen for personal memo folder updates from cloud sync realtime
+window.electronAPI?.on('personal:folder-updated', () => {
+  window.electronAPI.sync.pullMemoFolders()
+    .then(() => useMemoStore.getState().fetchFolders())
+    .catch(() => {});
+});
+
+// Listen for personal memo updates from cloud sync realtime
+window.electronAPI?.on('personal:memo-updated', () => {
+  window.electronAPI.sync.pullMemos()
+    .then(() => {
+      const state = useMemoStore.getState();
+      if (state.activeFolderId) {
+        state.fetchMemos(state.activeFolderId);
+      }
+    })
+    .catch(() => {});
+});

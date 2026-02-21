@@ -97,14 +97,14 @@ export class JiraService {
   }
 
   async createTicket(data: CreateTicketDto): Promise<JiraTicketResult> {
-    // Auto-set reporter to current user
-    const myself = await this.getMyself();
+    // Reporter = assignee (담당자가 보고자)
+    const reporterId = data.assigneeId || (await this.getMyself()).accountId;
 
     const fields: Record<string, unknown> = {
       project: { key: data.projectKey },
       issuetype: { id: data.issueTypeId },
       summary: data.summary,
-      reporter: { accountId: myself.accountId },
+      reporter: { accountId: reporterId },
       description: {
         type: 'doc',
         version: 1,

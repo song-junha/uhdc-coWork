@@ -1,7 +1,7 @@
 export interface Team {
   id: string;
   name: string;
-  type: 'default' | 'spot';
+  type: 'group';
   description: string;
   createdBy: string;
   isArchived: boolean;

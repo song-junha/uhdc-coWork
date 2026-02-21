@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-20T09:50:27.594Z",
+  "lastUpdated": "2026-02-21T07:36:53.395Z",
   "activeFeatures": [
     "menubar-utility",
     "db",
@@ -32,9 +32,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:51:51.620Z",
-        "lastUpdated": "2026-02-20T09:42:59.320Z"
+        "lastUpdated": "2026-02-21T07:32:41.550Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/shared/types/ipc.types.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/shared/types/ipc.types.ts"
     },
     "db": {
       "phase": "do",
@@ -45,9 +45,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:53:07.546Z",
-        "lastUpdated": "2026-02-20T07:03:48.282Z"
+        "lastUpdated": "2026-02-21T06:52:40.024Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/db/calendar.repo.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/main/db/memo.repo.ts"
     },
     "ipc": {
       "phase": "do",
@@ -58,9 +58,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:55:22.996Z",
-        "lastUpdated": "2026-02-20T09:49:23.129Z"
+        "lastUpdated": "2026-02-21T07:35:01.642Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/ipc/auth.ipc.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/main/ipc/team.ipc.ts"
     },
     "jira.service.ts": {
       "phase": "do",
@@ -71,9 +71,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:56:17.726Z",
-        "lastUpdated": "2026-02-20T08:31:29.174Z"
+        "lastUpdated": "2026-02-21T07:08:51.423Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/services/jira.service.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/main/services/jira.service.ts"
     },
     "scheduler.service.ts": {
       "phase": "do",
@@ -97,9 +97,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:56:46.620Z",
-        "lastUpdated": "2026-02-20T09:43:12.510Z"
+        "lastUpdated": "2026-02-21T07:35:11.576Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/preload.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/main/preload.ts"
     },
     "renderer": {
       "phase": "do",
@@ -123,9 +123,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:57:47.299Z",
-        "lastUpdated": "2026-02-20T08:01:16.660Z"
+        "lastUpdated": "2026-02-21T07:36:53.395Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/todo/useTodoStore.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/renderer/features/todo/TodoTab.tsx"
     },
     "memo": {
       "phase": "do",
@@ -136,9 +136,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:58:42.909Z",
-        "lastUpdated": "2026-02-20T07:33:49.860Z"
+        "lastUpdated": "2026-02-21T06:58:06.807Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/memo/MemoTab.tsx"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/renderer/features/memo/useMemoStore.ts"
     },
     "jira": {
       "phase": "do",
@@ -149,9 +149,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:59:48.402Z",
-        "lastUpdated": "2026-02-20T07:32:56.204Z"
+        "lastUpdated": "2026-02-21T07:08:33.958Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/jira/JiraTab.tsx"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/renderer/features/jira/JiraTab.tsx"
     },
     "calendar": {
       "phase": "do",
@@ -175,9 +175,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T05:01:10.088Z",
-        "lastUpdated": "2026-02-20T09:46:44.760Z"
+        "lastUpdated": "2026-02-21T07:36:24.799Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/team/MemberList.tsx"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/renderer/features/team/SpotGroupForm.tsx"
     },
     "i18n": {
       "phase": "do",
@@ -188,9 +188,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T05:07:31.784Z",
-        "lastUpdated": "2026-02-20T09:44:25.314Z"
+        "lastUpdated": "2026-02-21T07:33:42.957Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/shared/i18n/en.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/shared/i18n/ko.ts"
     },
     "settings": {
       "phase": "do",
@@ -201,9 +201,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T05:15:36.007Z",
-        "lastUpdated": "2026-02-20T07:57:08.939Z"
+        "lastUpdated": "2026-02-21T07:18:28.053Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/renderer/features/settings/SettingsView.tsx"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/renderer/features/settings/SettingsView.tsx"
     },
     "menubar-utility-app Gap Analysis": {
       "phase": "act",
@@ -242,9 +242,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T07:54:15.356Z",
-        "lastUpdated": "2026-02-20T09:50:27.594Z"
+        "lastUpdated": "2026-02-21T07:34:37.134Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/services/supabase.service.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/main/services/supabase.service.ts"
     },
     "sync.service.ts": {
       "phase": "do",
@@ -255,9 +255,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T07:54:36.405Z",
-        "lastUpdated": "2026-02-20T07:54:36.405Z"
+        "lastUpdated": "2026-02-21T06:53:52.105Z"
       },
-      "lastFile": "/Users/songjunha/uhdc-coWork/menubar-utility/src/main/services/sync.service.ts"
+      "lastFile": "/Users/junhasong/uhdc-coWork/menubar-utility/src/main/services/sync.service.ts"
     }
   },
   "pipeline": {
@@ -268,7 +268,7 @@
   "session": {
     "startedAt": "2026-02-20T04:12:00.472Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-20T09:50:27.594Z"
+    "lastActivity": "2026-02-21T07:36:53.395Z"
   },
   "history": [
     {
@@ -1990,6 +1990,444 @@
     {
       "timestamp": "2026-02-20T09:50:27.594Z",
       "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:51:55.801Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:52:06.929Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:52:40.024Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:53:52.105Z",
+      "feature": "sync.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:54:02.226Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:54:11.717Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:54:25.666Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:54:37.964Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:54:43.253Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:54:56.512Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:55:09.682Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:55:21.392Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:55:34.430Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:55:43.922Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:56:04.860Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:56:16.430Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:56:27.759Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:56:41.009Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:56:51.955Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:57:07.208Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:57:24.410Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:57:42.861Z",
+      "feature": "todo",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T06:58:06.807Z",
+      "feature": "memo",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:07:23.838Z",
+      "feature": "jira",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:07:34.475Z",
+      "feature": "jira",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:07:50.090Z",
+      "feature": "jira",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:08:07.744Z",
+      "feature": "jira",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:08:22.594Z",
+      "feature": "jira",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:08:33.958Z",
+      "feature": "jira",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:08:51.423Z",
+      "feature": "jira.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:13:02.048Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:17:12.181Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:17:34.875Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:17:46.494Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:18:00.033Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:18:17.802Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:18:28.053Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:19:25.647Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:22:12.280Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:22:44.595Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:22:59.096Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:23:29.277Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:23:39.439Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:23:56.676Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:24:09.569Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:26:15.885Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:26:25.869Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:26:43.119Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:28:10.243Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:32:31.810Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:32:41.550Z",
+      "feature": "menubar-utility",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:32:52.917Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:33:02.199Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:33:12.668Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:33:23.098Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:33:32.622Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:33:42.957Z",
+      "feature": "i18n",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:33:59.447Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:34:12.696Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:34:22.342Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:34:37.134Z",
+      "feature": "supabase.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:34:48.633Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:35:01.642Z",
+      "feature": "ipc",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:35:11.576Z",
+      "feature": "main",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:35:21.427Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:35:32.201Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:35:42.574Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:35:54.188Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:36:05.476Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:36:15.140Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:36:24.799Z",
+      "feature": "team",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:36:35.137Z",
+      "feature": "todo",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T07:36:53.395Z",
+      "feature": "todo",
       "phase": "do",
       "action": "updated"
     }

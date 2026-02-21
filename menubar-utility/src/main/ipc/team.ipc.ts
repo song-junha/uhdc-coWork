@@ -32,12 +32,12 @@ export function registerTeamHandlers(): void {
     }
   });
 
-  ipcMain.handle('team:createSpotGroup', async (_event, data: CreateGroupDto): Promise<Team | null> => {
+  ipcMain.handle('team:createGroup', async (_event, data: CreateGroupDto): Promise<Team | null> => {
     const jira = new JiraService();
     const myself = await jira.getMyself();
     const jiraEmail = settingsRepo.getSetting('jira_email') ?? '';
 
-    return supabaseService.createSpotGroup(
+    return supabaseService.createGroup(
       myself.accountId,
       myself.displayName,
       jiraEmail,

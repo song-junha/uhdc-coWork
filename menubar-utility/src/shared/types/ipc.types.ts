@@ -49,7 +49,7 @@ export interface ElectronAPI {
   team: {
     getMyTeams: () => Promise<Team[]>;
     getMembers: (teamId: string) => Promise<TeamMember[]>;
-    createSpotGroup: (data: CreateGroupDto) => Promise<Team>;
+    createGroup: (data: CreateGroupDto) => Promise<Team>;
     archiveGroup: (groupId: string) => Promise<void>;
     deleteGroup: (groupId: string) => Promise<void>;
     renameGroup: (groupId: string, name: string) => Promise<void>;
@@ -63,6 +63,14 @@ export interface ElectronAPI {
   sync: {
     pushTodos: (teamId: string) => Promise<void>;
     pullTodos: (teamId: string) => Promise<void>;
+    pushPersonalTodos: () => Promise<void>;
+    pullPersonalTodos: () => Promise<void>;
+    pushMemoFolders: () => Promise<void>;
+    pullMemoFolders: () => Promise<void>;
+    pushMemos: () => Promise<void>;
+    pullMemos: () => Promise<void>;
+    pushAllPersonal: () => Promise<void>;
+    pullAllPersonal: () => Promise<void>;
   };
   settings: {
     get: (key: string) => Promise<string | null>;

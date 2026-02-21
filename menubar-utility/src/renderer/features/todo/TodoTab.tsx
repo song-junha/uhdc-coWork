@@ -41,8 +41,7 @@ export default function TodoTab() {
   const { teams, user } = useTeamStore();
   const [showForm, setShowForm] = useState(false);
 
-  const teamOptions = teams.filter(te => te.type === 'default' && !te.isArchived);
-  const groupOptions = teams.filter(te => te.type === 'spot' && !te.isArchived);
+  const groupOptions = teams.filter(te => !te.isArchived);
 
   useEffect(() => {
     fetchTodos();
@@ -99,7 +98,7 @@ export default function TodoTab() {
               className="ml-auto text-[10px] bg-[var(--surface)] border border-[var(--border)] rounded px-1 py-0.5 text-[var(--text)]"
             >
               <option value="">-</option>
-              {(filter.scope === 'team' ? teamOptions : groupOptions).map(te => (
+              {groupOptions.map(te => (
                 <option key={te.id} value={te.id}>{te.name}</option>
               ))}
             </select>

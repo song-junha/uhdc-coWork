@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { supabaseService } from '../services/supabase.service';
 import { JiraService } from '../services/jira.service';
-import { syncAll } from '../services/sync.service';
+import { syncAll, pullAllPersonal } from '../services/sync.service';
 import * as settingsRepo from '../db/settings.repo';
 import type { AuthUser } from '../../shared/types/team.types';
 
@@ -12,7 +12,7 @@ function isJiraConfigured(): boolean {
   return !!(url && email && token);
 }
 
-function setupRealtime(jiraAccountId: string): void {
+function setupRealtime(jiraAccountId: string, userId: string): void {
   supabaseService.getMyTeams(jiraAccountId).then(teams => {
     const teamIds = teams.map(t => t.id);
     supabaseService.subscribeRealtime(teamIds, (event, payload) => {
@@ -21,6 +21,16 @@ function setupRealtime(jiraAccountId: string): void {
       }
     });
   }).catch(() => {});
+
+  // Personal cloud sync realtime (only if enabled)
+  const cloudSyncEnabled = settingsRepo.getSetting('cloud_sync_enabled') === 'true';
+  if (cloudSyncEnabled) {
+    supabaseService.subscribePersonalRealtime(userId, (event, payload) => {
+      for (const win of BrowserWindow.getAllWindows()) {
+        win.webContents.send(event, payload);
+      }
+    });
+  }
 }
 
 export function registerAuthHandlers(): void {
@@ -39,9 +49,6 @@ export function registerAuthHandlers(): void {
       const user = existing ?? await supabaseService.autoSignInFromJira(jiraEmail, myself.displayName);
       if (!user) return null;
 
-      // 기본 팀 보장
-      await supabaseService.ensureDefaultTeam(user.id, myself.accountId, myself.displayName, jiraEmail);
-
       // 초기 동기화
       try {
         const teams = await supabaseService.getMyTeams(myself.accountId);
@@ -50,7 +57,17 @@ export function registerAuthHandlers(): void {
         // Sync errors are non-fatal
       }
 
-      setupRealtime(myself.accountId);
+      // Personal cloud sync (if enabled)
+      const cloudSyncEnabled = settingsRepo.getSetting('cloud_sync_enabled') === 'true';
+      if (cloudSyncEnabled) {
+        try {
+          await pullAllPersonal();
+        } catch {
+          // Non-fatal
+        }
+      }
+
+      setupRealtime(myself.accountId, user.id);
 
       // AuthUser에 jiraAccountId 포함
       return { ...user, id: user.id, jiraAccountId: myself.accountId };

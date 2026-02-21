@@ -97,7 +97,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   createGroup: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await window.electronAPI.team.createSpotGroup(data);
+      await window.electronAPI.team.createGroup(data);
       await get().fetchTeams();
       set({ view: 'list' });
     } catch (err) {

@@ -77,12 +77,12 @@ export default function MemberList() {
             <>
               <p className="text-sm font-medium text-[var(--text)] truncate">{team.name}</p>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-                {team.type === 'default' ? t('team.defaultTeam') : 'Spot'}
+                {t('team.groups')}
               </span>
             </>
           )}
         </div>
-        {isAdmin && team.type === 'spot' && !editing && (
+        {isAdmin && !editing && (
           <div className="flex items-center gap-1">
             <button onClick={startRename} className="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors p-1" title={t('team.renameGroup')}>
               <Pencil size={13} />

@@ -129,15 +129,14 @@ export const en = {
 
   // Team
   'team.title': 'Team Management',
-  'team.description': 'Manage your default team and create spot groups for cross-team collaboration.',
+  'team.description': 'Create groups for team collaboration.',
   'team.inviteMembers': 'Invite Members',
-  'team.createGroup': 'Create Spot Group',
+  'team.createGroup': 'Create Group',
   'team.comingSoon': 'Coming in Phase 4 — Requires Supabase setup',
   'team.notConfigured': 'Jira not configured',
   'team.notConfiguredDesc': 'To use team features, set up your Jira connection in Settings first.',
   'team.goToSettings': 'Go to Settings',
-  'team.defaultTeam': 'Default Team',
-  'team.spotGroups': 'Spot Groups',
+  'team.groups': 'Groups',
   'team.archived': 'Archived',
   'team.members': '{count} members',
   'team.archive': 'Archive',
@@ -169,11 +168,11 @@ export const en = {
   'team.searchJiraUser': 'Search by name or email...',
   'team.noResults': 'No results found',
 
-  // Spot Group Form
-  'spotGroup.title': 'Create Spot Group',
-  'spotGroup.name': 'Group Name',
-  'spotGroup.description': 'Description (optional)',
-  'spotGroup.addMembersLater': 'You can add members after creating the group',
+  // Group Form
+  'group.title': 'Create Group',
+  'group.name': 'Group Name',
+  'group.description': 'Description (optional)',
+  'group.addMembersLater': 'You can add members after creating the group',
 
   // Sync
   'sync.syncing': 'Syncing...',
@@ -187,6 +186,15 @@ export const en = {
   'settings.supabaseAnonKey': 'Anon Key',
   'settings.supabaseConnected': 'Connected',
   'settings.supabaseDisconnected': 'Not connected',
+
+  // Cloud Sync
+  'settings.cloudSync': 'Cloud Sync',
+  'settings.cloudSync.description': 'Sync personal todos and memos across devices',
+  'settings.cloudSync.enabled': 'ON',
+  'settings.cloudSync.disabled': 'OFF',
+  'settings.cloudSync.turnOn': 'Uploading local data...',
+  'settings.cloudSync.requiresSupabase': 'Requires Supabase connection',
+  'settings.cloudSync.syncing': 'Syncing...',
 
   // Memo context menu
   'memo.delete': 'Delete',

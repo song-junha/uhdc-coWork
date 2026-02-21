@@ -5,38 +5,33 @@ import { app } from 'electron';
 import * as settingsRepo from '../db/settings.repo';
 import type { AuthUser } from '../../shared/types/team.types';
 
-// .env 파일에서 직접 로드 (Vite import.meta.env가 main process에서 안 될 수 있음)
+// 빌드 시 Vite define으로 main process에만 주입됨 (Renderer 번들에는 포함되지 않음)
 function loadEnvDefaults(): { url: string; key: string } {
-  // 1) Vite embed 값 시도
-  try {
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (url && key) return { url, key };
-  } catch {}
+  // 1) 빌드 시 주입된 값 사용 (프로덕션)
+  const injectedUrl = process.env.SUPABASE_URL || '';
+  const injectedKey = process.env.SUPABASE_ANON_KEY || '';
+  if (injectedUrl && injectedKey) return { url: injectedUrl, key: injectedKey };
 
-  // 2) .env 파일 직접 파싱 (fallback)
-  try {
-    const envPaths = [
-      join(app.getAppPath(), '.env'),
-      join(app.getAppPath(), '..', '.env'),
-      join(process.cwd(), '.env'),
-    ];
-    for (const envPath of envPaths) {
-      try {
-        const content = readFileSync(envPath, 'utf-8');
-        const lines = content.split('\n');
-        let url = '';
-        let key = '';
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('VITE_SUPABASE_URL=')) url = trimmed.split('=').slice(1).join('=');
-          if (trimmed.startsWith('VITE_SUPABASE_ANON_KEY=')) key = trimmed.split('=').slice(1).join('=');
-        }
-        if (url && key) return { url, key };
-      } catch {}
-    }
-  } catch {}
-
+  // 2) .env 파일 직접 파싱 (개발 모드 fallback)
+  const envPaths = [
+    join(app.getAppPath(), '.env'),
+    join(app.getAppPath(), '..', '.env'),
+    join(process.cwd(), '.env'),
+  ];
+  for (const envPath of envPaths) {
+    try {
+      const content = readFileSync(envPath, 'utf-8');
+      const lines = content.split('\n');
+      let url = '';
+      let key = '';
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('SUPABASE_URL=')) url = trimmed.split('=').slice(1).join('=');
+        if (trimmed.startsWith('SUPABASE_ANON_KEY=')) key = trimmed.split('=').slice(1).join('=');
+      }
+      if (url && key) return { url, key };
+    } catch {}
+  }
   return { url: '', key: '' };
 }
 
@@ -47,6 +42,7 @@ const DEFAULT_KEY = ENV_DEFAULTS.key;
 export class SupabaseService {
   private client: SupabaseClient | null = null;
   private realtimeChannel: RealtimeChannel | null = null;
+  private personalRealtimeChannel: RealtimeChannel | null = null;
 
   private getConfig(): { url: string; key: string } {
     const url = settingsRepo.getSetting('supabase_url') || DEFAULT_URL;
@@ -73,6 +69,7 @@ export class SupabaseService {
 
   resetClient(): void {
     this.unsubscribeRealtime();
+    this.unsubscribePersonalRealtime();
     this.client = null;
   }
 
@@ -151,7 +148,7 @@ export class SupabaseService {
       return {
         id: team.id as string,
         name: team.name as string,
-        type: team.type as 'default' | 'spot',
+        type: 'group' as const,
         description: (team.description as string) || '',
         createdBy: team.created_by as string,
         isArchived: team.is_archived as boolean,
@@ -183,14 +180,14 @@ export class SupabaseService {
     }));
   }
 
-  async createSpotGroup(jiraAccountId: string, displayName: string, email: string, groupName: string, description: string) {
+  async createGroup(jiraAccountId: string, displayName: string, email: string, groupName: string, description: string) {
     const client = this.getClient();
     const session = await this.getSession();
     const createdBy = session?.id ?? jiraAccountId;
 
     const { data: team, error: teamErr } = await client
       .from('teams')
-      .insert({ name: groupName, type: 'spot', description, created_by: createdBy })
+      .insert({ name: groupName, type: 'group', description, created_by: createdBy })
       .select()
       .single();
     if (teamErr) throw new Error(teamErr.message);
@@ -207,7 +204,7 @@ export class SupabaseService {
     return {
       id: team.id,
       name: team.name,
-      type: team.type as 'default' | 'spot',
+      type: 'group' as const,
       description: team.description || '',
       createdBy: team.created_by,
       isArchived: team.is_archived,
@@ -216,36 +213,63 @@ export class SupabaseService {
     };
   }
 
-  async archiveGroup(groupId: string): Promise<void> {
+  private async getCurrentUserId(): Promise<string> {
+    const session = await this.getSession();
+    if (!session) throw new Error('인증이 필요합니다');
+    return session.id;
+  }
+
+  private async verifyTeamOwner(groupId: string): Promise<void> {
+    const userId = await this.getCurrentUserId();
     const client = this.getClient();
+    const { data } = await client
+      .from('teams')
+      .select('id')
+      .eq('id', groupId)
+      .eq('created_by', userId)
+      .single();
+    if (!data) throw new Error('본인이 생성한 팀만 수정/삭제할 수 있습니다');
+  }
+
+  async archiveGroup(groupId: string): Promise<void> {
+    await this.verifyTeamOwner(groupId);
+    const client = this.getClient();
+    const userId = await this.getCurrentUserId();
     const { error } = await client
       .from('teams')
       .update({ is_archived: true, archived_at: new Date().toISOString() })
-      .eq('id', groupId);
+      .eq('id', groupId)
+      .eq('created_by', userId);
     if (error) throw new Error(error.message);
   }
 
   async deleteGroup(groupId: string): Promise<void> {
+    await this.verifyTeamOwner(groupId);
     const client = this.getClient();
+    const userId = await this.getCurrentUserId();
     // team_members는 ON DELETE CASCADE로 자동 삭제
     const { error } = await client
       .from('teams')
       .delete()
       .eq('id', groupId)
-      .eq('type', 'spot'); // default 팀은 삭제 불가
+      .eq('created_by', userId);
     if (error) throw new Error(error.message);
   }
 
   async renameGroup(groupId: string, name: string): Promise<void> {
+    await this.verifyTeamOwner(groupId);
     const client = this.getClient();
+    const userId = await this.getCurrentUserId();
     const { error } = await client
       .from('teams')
       .update({ name })
-      .eq('id', groupId);
+      .eq('id', groupId)
+      .eq('created_by', userId);
     if (error) throw new Error(error.message);
   }
 
   async addMember(teamId: string, jiraAccountId: string, displayName: string, email: string): Promise<void> {
+    await this.verifyTeamOwner(teamId);
     const client = this.getClient();
     const { error } = await client.from('team_members').insert({
       team_id: teamId,
@@ -258,6 +282,7 @@ export class SupabaseService {
   }
 
   async removeMember(teamId: string, memberId: string): Promise<void> {
+    await this.verifyTeamOwner(teamId);
     const client = this.getClient();
     const { error } = await client
       .from('team_members')
@@ -296,6 +321,40 @@ export class SupabaseService {
     }
   }
 
+  subscribePersonalRealtime(userId: string, callback: (event: string, payload: unknown) => void): void {
+    this.unsubscribePersonalRealtime();
+
+    const client = this.getClient();
+    this.personalRealtimeChannel = client
+      .channel('personal-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_todos',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => callback('personal:todo-updated', payload))
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_memo_folders',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => callback('personal:folder-updated', payload))
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_memos',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => callback('personal:memo-updated', payload))
+      .subscribe();
+  }
+
+  unsubscribePersonalRealtime(): void {
+    if (this.personalRealtimeChannel) {
+      this.personalRealtimeChannel.unsubscribe();
+      this.personalRealtimeChannel = null;
+    }
+  }
+
   private async upsertProfile(userId: string, email: string, displayName: string): Promise<void> {
     const client = this.getClient();
     await client.from('profiles').upsert({
@@ -306,32 +365,6 @@ export class SupabaseService {
     });
   }
 
-  async ensureDefaultTeam(userId: string, jiraAccountId: string, displayName: string, email: string): Promise<void> {
-    const client = this.getClient();
-    const { data: existing } = await client
-      .from('team_members')
-      .select('team_id, teams!inner(type)')
-      .eq('jira_account_id', jiraAccountId)
-      .eq('teams.type', 'default');
-
-    if (existing && existing.length > 0) return;
-
-    const { data: team } = await client
-      .from('teams')
-      .insert({ name: `${displayName}'s Team`, type: 'default', created_by: userId })
-      .select()
-      .single();
-
-    if (team) {
-      await client.from('team_members').insert({
-        team_id: team.id,
-        jira_account_id: jiraAccountId,
-        display_name: displayName,
-        email,
-        role: 'admin',
-      });
-    }
-  }
 
   private mapUser(user: { id: string; email?: string; user_metadata?: Record<string, unknown> }): AuthUser {
     return {

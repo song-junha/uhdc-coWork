@@ -129,15 +129,14 @@ export const ko = {
 
   // Team
   'team.title': '팀 관리',
-  'team.description': '기본 팀 구성원을 관리하고 타팀 협업을 위한 스팟 그룹을 만드세요.',
+  'team.description': '협업을 위한 그룹을 만드세요.',
   'team.inviteMembers': '구성원 초대',
-  'team.createGroup': '스팟 그룹 만들기',
+  'team.createGroup': '그룹 만들기',
   'team.comingSoon': 'Phase 4에서 제공 - Supabase 설정 필요',
   'team.notConfigured': 'Jira가 설정되지 않았습니다',
   'team.notConfiguredDesc': '팀 기능을 사용하려면 설정에서 Jira 정보를 먼저 입력하세요.',
   'team.goToSettings': '설정으로 이동',
-  'team.defaultTeam': '기본 팀',
-  'team.spotGroups': '스팟 그룹',
+  'team.groups': '그룹',
   'team.archived': '보관된 그룹',
   'team.members': '{count}명',
   'team.archive': '보관',
@@ -169,11 +168,11 @@ export const ko = {
   'team.searchJiraUser': '이름 또는 이메일로 검색...',
   'team.noResults': '검색 결과가 없습니다',
 
-  // Spot Group Form
-  'spotGroup.title': '스팟 그룹 만들기',
-  'spotGroup.name': '그룹 이름',
-  'spotGroup.description': '설명 (선택)',
-  'spotGroup.addMembersLater': '그룹 생성 후 멤버를 등록할 수 있습니다',
+  // Group Form
+  'group.title': '그룹 만들기',
+  'group.name': '그룹 이름',
+  'group.description': '설명 (선택)',
+  'group.addMembersLater': '그룹 생성 후 멤버를 등록할 수 있습니다',
 
   // Sync
   'sync.syncing': '동기화 중...',
@@ -187,6 +186,15 @@ export const ko = {
   'settings.supabaseAnonKey': 'Anon Key',
   'settings.supabaseConnected': '연결됨',
   'settings.supabaseDisconnected': '미연결',
+
+  // Cloud Sync
+  'settings.cloudSync': '클라우드 동기화',
+  'settings.cloudSync.description': '개인 Todo와 메모를 기기 간 동기화',
+  'settings.cloudSync.enabled': 'ON',
+  'settings.cloudSync.disabled': 'OFF',
+  'settings.cloudSync.turnOn': '로컬 데이터 업로드 중...',
+  'settings.cloudSync.requiresSupabase': 'Supabase 연결이 필요합니다',
+  'settings.cloudSync.syncing': '동기화 중...',
 
   // Memo context menu
   'memo.delete': '삭제',

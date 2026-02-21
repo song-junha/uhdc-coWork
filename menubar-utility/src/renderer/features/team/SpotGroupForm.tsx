@@ -25,7 +25,7 @@ export default function SpotGroupForm() {
         <button onClick={() => setView('list')} className="text-[var(--text-secondary)] hover:text-[var(--text)]">
           <X size={18} />
         </button>
-        <span className="text-sm font-semibold text-[var(--text)]">{t('spotGroup.title')}</span>
+        <span className="text-sm font-semibold text-[var(--text)]">{t('group.title')}</span>
       </div>
 
       {/* Form */}
@@ -34,7 +34,7 @@ export default function SpotGroupForm() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder={t('spotGroup.name')}
+          placeholder={t('group.name')}
           required
           autoFocus
           className="w-full px-3 py-2 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--text-secondary)]/50"
@@ -43,10 +43,10 @@ export default function SpotGroupForm() {
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder={t('spotGroup.description')}
+          placeholder={t('group.description')}
           className="w-full px-3 py-2 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--text-secondary)]/50"
         />
-        <p className="text-[10px] text-[var(--text-secondary)]">{t('spotGroup.addMembersLater')}</p>
+        <p className="text-[10px] text-[var(--text-secondary)]">{t('group.addMembersLater')}</p>
         <button
           type="submit"
           disabled={isLoading || !name.trim()}

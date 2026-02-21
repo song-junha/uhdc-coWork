@@ -4,7 +4,10 @@ export interface MemoFolder {
   name: string;
   sortOrder: number;
   isExpanded: boolean;
+  remoteId: string | null;
+  syncedAt: string | null;
   createdAt: string;
+  updatedAt: string;
   children?: MemoFolder[];
 }
 
@@ -14,6 +17,8 @@ export interface Memo {
   title: string;
   content: string;
   sortOrder: number;
+  remoteId: string | null;
+  syncedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

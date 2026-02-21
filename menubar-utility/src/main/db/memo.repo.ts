@@ -1,24 +1,29 @@
 import { getDatabase } from './index';
 import type { MemoFolder, Memo, CreateFolderDto, UpdateFolderDto, CreateMemoDto, UpdateMemoDto } from '../../shared/types/memo.types';
 
-function rowToFolder(row: Record<string, unknown>): MemoFolder {
+export function rowToFolder(row: Record<string, unknown>): MemoFolder {
   return {
     id: row.id as string,
     parentId: row.parent_id as string | null,
     name: row.name as string,
     sortOrder: row.sort_order as number,
     isExpanded: (row.is_expanded as number) === 1,
+    remoteId: row.remote_id as string | null,
+    syncedAt: row.synced_at as string | null,
     createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
   };
 }
 
-function rowToMemo(row: Record<string, unknown>): Memo {
+export function rowToMemo(row: Record<string, unknown>): Memo {
   return {
     id: row.id as string,
     folderId: row.folder_id as string,
     title: row.title as string,
     content: row.content as string,
     sortOrder: row.sort_order as number,
+    remoteId: row.remote_id as string | null,
+    syncedAt: row.synced_at as string | null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -28,6 +33,12 @@ export function getFolders(): MemoFolder[] {
   const db = getDatabase();
   const rows = db.prepare('SELECT * FROM memo_folders ORDER BY sort_order ASC').all() as Record<string, unknown>[];
   return rows.map(rowToFolder);
+}
+
+export function getAllMemos(): Memo[] {
+  const db = getDatabase();
+  const rows = db.prepare('SELECT * FROM memos ORDER BY sort_order ASC').all() as Record<string, unknown>[];
+  return rows.map(rowToMemo);
 }
 
 export function createFolder(data: CreateFolderDto): MemoFolder {
@@ -53,6 +64,11 @@ export function updateFolder(id: string, data: UpdateFolderDto): MemoFolder {
   if (data.name !== undefined) { sets.push('name = ?'); params.push(data.name); }
   if (data.parentId !== undefined) { sets.push('parent_id = ?'); params.push(data.parentId); }
   if (data.isExpanded !== undefined) { sets.push('is_expanded = ?'); params.push(data.isExpanded ? 1 : 0); }
+
+  // Only bump updated_at for content changes (name, parentId), not UI state (isExpanded)
+  if (data.name !== undefined || data.parentId !== undefined) {
+    sets.push("updated_at = datetime('now')");
+  }
 
   if (sets.length > 0) {
     params.push(id);

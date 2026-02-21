@@ -9,9 +9,8 @@ export default function TeamList() {
   const { teams, user, signOut, setActiveTeam, setView } = useTeamStore();
   const [showArchived, setShowArchived] = useState(false);
 
-  const defaultTeam = teams.find(t => t.type === 'default');
-  const activeGroups = teams.filter(t => t.type === 'spot' && !t.isArchived);
-  const archivedGroups = teams.filter(t => t.type === 'spot' && t.isArchived);
+  const activeGroups = teams.filter(t => !t.isArchived);
+  const archivedGroups = teams.filter(t => t.isArchived);
 
   const TeamItem = ({ team }: { team: Team }) => (
     <button
@@ -27,11 +26,6 @@ export default function TeamList() {
           {t('team.members', { count: team.memberCount ?? 0 })}
         </p>
       </div>
-      {team.type === 'spot' && (
-        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-          Spot
-        </span>
-      )}
     </button>
   );
 
@@ -53,21 +47,11 @@ export default function TeamList() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-2 space-y-3">
-        {/* Default team */}
-        {defaultTeam && (
-          <div>
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wide px-2 mb-1">
-              {t('team.defaultTeam')}
-            </p>
-            <TeamItem team={defaultTeam} />
-          </div>
-        )}
-
-        {/* Spot groups */}
+        {/* Groups */}
         <div>
           <div className="flex items-center justify-between px-2 mb-1">
             <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wide">
-              {t('team.spotGroups')}
+              {t('team.groups')}
             </p>
             <button
               onClick={() => setView('createGroup')}

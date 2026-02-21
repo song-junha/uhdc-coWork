@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, shell } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 import type { ElectronAPI } from '../shared/types/ipc.types';
 
 const api: ElectronAPI = {
@@ -46,7 +46,7 @@ const api: ElectronAPI = {
   team: {
     getMyTeams: () => ipcRenderer.invoke('team:getMyTeams'),
     getMembers: (teamId) => ipcRenderer.invoke('team:getMembers', teamId),
-    createSpotGroup: (data) => ipcRenderer.invoke('team:createSpotGroup', data),
+    createGroup: (data) => ipcRenderer.invoke('team:createGroup', data),
     archiveGroup: (groupId) => ipcRenderer.invoke('team:archiveGroup', groupId),
     deleteGroup: (groupId) => ipcRenderer.invoke('team:deleteGroup', groupId),
     renameGroup: (groupId, name) => ipcRenderer.invoke('team:renameGroup', groupId, name),
@@ -60,6 +60,14 @@ const api: ElectronAPI = {
   sync: {
     pushTodos: (teamId) => ipcRenderer.invoke('sync:pushTodos', teamId),
     pullTodos: (teamId) => ipcRenderer.invoke('sync:pullTodos', teamId),
+    pushPersonalTodos: () => ipcRenderer.invoke('sync:pushPersonalTodos'),
+    pullPersonalTodos: () => ipcRenderer.invoke('sync:pullPersonalTodos'),
+    pushMemoFolders: () => ipcRenderer.invoke('sync:pushMemoFolders'),
+    pullMemoFolders: () => ipcRenderer.invoke('sync:pullMemoFolders'),
+    pushMemos: () => ipcRenderer.invoke('sync:pushMemos'),
+    pullMemos: () => ipcRenderer.invoke('sync:pullMemos'),
+    pushAllPersonal: () => ipcRenderer.invoke('sync:pushAllPersonal'),
+    pullAllPersonal: () => ipcRenderer.invoke('sync:pullAllPersonal'),
   },
   settings: {
     get: (key) => ipcRenderer.invoke('settings:get', key),

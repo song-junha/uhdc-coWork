@@ -1,12 +1,15 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
-export default defineConfig({
-  envDir: path.resolve(__dirname), // .env를 프로젝트 루트에서 로드
+export default defineConfig(({ mode }) => {
+  // .env에서 SUPABASE_ 변수 로드 (VITE_ 접두어 없이)
+  const env = loadEnv(mode, path.resolve(__dirname), '');
+
+  return {
   plugins: [
     react(),
     tailwindcss(),
@@ -14,6 +17,11 @@ export default defineConfig({
       {
         entry: path.resolve(__dirname, 'src/main/index.ts'),
         vite: {
+          define: {
+            // main process 빌드에만 주입 (Renderer에는 포함되지 않음)
+            'process.env.SUPABASE_URL': JSON.stringify(env.SUPABASE_URL || ''),
+            'process.env.SUPABASE_ANON_KEY': JSON.stringify(env.SUPABASE_ANON_KEY || ''),
+          },
           build: {
             outDir: path.resolve(__dirname, 'dist/main'),
             rollupOptions: {
@@ -46,4 +54,5 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, 'dist/renderer'),
   },
+  };
 });

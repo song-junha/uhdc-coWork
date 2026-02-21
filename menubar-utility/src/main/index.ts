@@ -1,4 +1,4 @@
-import { app, globalShortcut, BrowserWindow } from 'electron';
+import { app, globalShortcut, session, BrowserWindow } from 'electron';
 import { menubar } from 'menubar';
 import path from 'path';
 import { initDatabase, closeDatabase } from './db';
@@ -17,6 +17,25 @@ const isDev = !app.isPackaged;
 app.on('ready', () => {
   initDatabase();
   registerIpcHandlers();
+
+  // Content Security Policy 설정 (프로덕션만 - 개발 모드는 Vite HMR이 필요)
+  if (!isDev) {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [
+            "default-src 'self'; " +
+            "script-src 'self'; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "connect-src 'self' https://*.supabase.co wss://*.supabase.co; " +
+            "img-src 'self' data: https:; " +
+            "font-src 'self';"
+          ],
+        },
+      });
+    });
+  }
 });
 
 const mb = menubar({
@@ -33,7 +52,7 @@ const mb = menubar({
       preload: path.join(__dirname, '../preload/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
   },
   preloadWindow: true,
@@ -43,6 +62,16 @@ const mb = menubar({
 
 mb.on('ready', () => {
   console.log('MenuBar Utility is ready');
+
+  // 예기치 않은 페이지 이동 및 새 창 차단
+  if (mb.window) {
+    mb.window.webContents.on('will-navigate', (event, url) => {
+      if (!url.startsWith('http://localhost:') && !url.startsWith('file://')) {
+        event.preventDefault();
+      }
+    });
+    mb.window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  }
 
   // Start calendar alert scheduler
   startScheduler();
@@ -70,6 +99,7 @@ app.on('will-quit', () => {
   globalShortcut.unregisterAll();
   stopScheduler();
   supabaseService.unsubscribeRealtime();
+  supabaseService.unsubscribePersonalRealtime();
   closeDatabase();
 });
 
