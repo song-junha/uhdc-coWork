@@ -61,7 +61,9 @@ export const useJiraStore = create<JiraStore>((set, get) => ({
   },
 
   fetchHistory: async () => {
-    const history = await window.electronAPI.jira.getHistory();
+    const all = await window.electronAPI.jira.getHistory();
+    const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000;
+    const history = all.filter(item => new Date(item.createdAt).getTime() >= twoDaysAgo);
     set({ history });
   },
 
