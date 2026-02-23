@@ -41,11 +41,13 @@ interface MemoStore {
   deleteMemo: (id: string) => Promise<void>;
   setActiveMemoId: (id: string | null) => void;
 
+  moveMemo: (id: string, targetFolderId: string) => Promise<void>;
   reorderMemos: (ids: string[]) => Promise<void>;
   reorderFolders: (ids: string[]) => Promise<void>;
 
   search: (query: string) => Promise<void>;
   clearSearch: () => void;
+  expandFoldersForSearch: (results: Memo[]) => void;
 }
 
 export const useMemoStore = create<MemoStore>((set, get) => ({
@@ -123,6 +125,12 @@ export const useMemoStore = create<MemoStore>((set, get) => ({
 
   setActiveMemoId: (id) => set({ activeMemoId: id }),
 
+  moveMemo: async (id, targetFolderId) => {
+    await window.electronAPI.memo.moveMemo(id, targetFolderId);
+    if (get().activeFolderId) await get().fetchMemos(get().activeFolderId!);
+    syncMemosIfEnabled();
+  },
+
   reorderMemos: async (ids) => {
     await window.electronAPI.memo.reorderMemos(ids);
     if (get().activeFolderId) await get().fetchMemos(get().activeFolderId!);
@@ -143,9 +151,32 @@ export const useMemoStore = create<MemoStore>((set, get) => ({
     }
     const results = await window.electronAPI.memo.search(query);
     set({ searchResults: results });
+    get().expandFoldersForSearch(results);
   },
 
   clearSearch: () => set({ searchQuery: '', searchResults: [] }),
+
+  expandFoldersForSearch: (results) => {
+    if (results.length === 0) return;
+    const folderIds = new Set(results.map(r => r.folderId));
+    const { folders } = get();
+    // Also expand parent folders
+    const expandIds = new Set<string>();
+    for (const fId of folderIds) {
+      let current = folders.find(f => f.id === fId);
+      while (current) {
+        expandIds.add(current.id);
+        current = current.parentId ? folders.find(f => f.id === current!.parentId) : undefined;
+      }
+    }
+    for (const id of expandIds) {
+      window.electronAPI.memo.updateFolder(id, { isExpanded: true }).catch(() => {});
+    }
+    // Update local state immediately
+    set({
+      folders: folders.map(f => expandIds.has(f.id) ? { ...f, isExpanded: true } : f),
+    });
+  },
 }));
 
 // Listen for personal memo folder updates from cloud sync realtime

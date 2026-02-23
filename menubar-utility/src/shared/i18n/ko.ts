@@ -200,6 +200,11 @@ export const ko = {
   'settings.cloudSync.requiresSupabase': 'Supabase 연결이 필요합니다',
   'settings.cloudSync.syncing': '동기화 중...',
 
+  'memo.preview': '미리보기',
+  'memo.edit': '편집',
+  'memo.dropHere': '여기로 이동',
+  'memo.searchResults': '검색 결과: {count}건',
+
   // Memo context menu
   'memo.delete': '삭제',
 
@@ -212,5 +217,8 @@ export const ko = {
   'settings.theme.system': '시스템',
   'settings.about': '정보',
   'settings.version': '버전',
+  'settings.resetData': '데이터 초기화',
+  'settings.resetDataConfirm': '모든 데이터가 삭제되고 앱이 재시작됩니다. 계속하시겠습니까?',
+  'settings.quit': '앱 종료',
   'settings.back': '뒤로',
 } as const;

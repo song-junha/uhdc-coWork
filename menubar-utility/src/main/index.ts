@@ -109,6 +109,8 @@ if (!gotTheLock) {
   app.quit();
 } else {
   app.on('second-instance', () => {
-    mb.showWindow();
+    if (mb.window) {
+      mb.showWindow();
+    }
   });
 }

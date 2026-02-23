@@ -114,9 +114,16 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   },
 
   deleteGroup: async (groupId) => {
-    await window.electronAPI.team.deleteGroup(groupId);
-    await get().fetchTeams();
-    set({ view: 'list', activeTeamId: null });
+    set({ isLoading: true, error: null });
+    try {
+      await window.electronAPI.team.deleteGroup(groupId);
+      await get().fetchTeams();
+      set({ view: 'list', activeTeamId: null });
+    } catch (err) {
+      set({ error: (err as Error).message });
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
   renameGroup: async (groupId, name) => {

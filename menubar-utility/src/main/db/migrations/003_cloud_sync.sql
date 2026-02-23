@@ -1,7 +1,7 @@
 -- Add cloud sync fields to memo_folders
 ALTER TABLE memo_folders ADD COLUMN remote_id TEXT;
 ALTER TABLE memo_folders ADD COLUMN synced_at TEXT;
-ALTER TABLE memo_folders ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));
+ALTER TABLE memo_folders ADD COLUMN updated_at TEXT NOT NULL DEFAULT '';
 
 -- Add cloud sync fields to memos
 ALTER TABLE memos ADD COLUMN remote_id TEXT;

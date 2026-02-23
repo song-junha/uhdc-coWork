@@ -1,4 +1,5 @@
 import { safeStorage } from 'electron';
+import https from 'https';
 import * as settingsRepo from '../db/settings.repo';
 import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser, JiraTransition } from '../../shared/types/jira.types';
 
@@ -8,6 +9,9 @@ interface CacheEntry<T> {
 }
 
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+// 회사 프록시 자체서명 인증서 허용
+const agent = new https.Agent({ rejectUnauthorized: false });
 
 export class JiraService {
   private cache = new Map<string, CacheEntry<unknown>>();
@@ -49,25 +53,43 @@ export class JiraService {
     return `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`;
   }
 
-  private async request<T>(path: string, options?: RequestInit): Promise<T> {
-    const { baseUrl } = this.getConfig();
-    const response = await fetch(`${baseUrl}${path}`, {
-      ...options,
-      headers: {
-        'Authorization': this.getAuthHeader(),
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...options?.headers,
-      },
+  private request<T>(path: string, options?: { method?: string; body?: string }): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const { baseUrl } = this.getConfig();
+      const url = new URL(`${baseUrl}${path}`);
+      const method = options?.method || 'GET';
+
+      const req = https.request(url, {
+        method,
+        agent,
+        headers: {
+          'Authorization': this.getAuthHeader(),
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Atlassian-Token': 'no-check',
+        },
+      }, (res) => {
+        let body = '';
+        res.on('data', (chunk) => { body += chunk; });
+        res.on('end', () => {
+          const status = res.statusCode ?? 0;
+          if (status >= 200 && status < 300) {
+            if (status === 204 || !body) resolve(undefined as T);
+            else {
+              try { resolve(JSON.parse(body) as T); }
+              catch { reject(new Error(`JSON parse error: ${body.slice(0, 200)}`)); }
+            }
+          } else {
+            reject(new Error(`Jira API error (${status}): ${body}`));
+          }
+        });
+      });
+
+      req.on('error', (err) => reject(err));
+
+      if (options?.body) req.write(options.body);
+      req.end();
     });
-
-    if (!response.ok) {
-      const body = await response.text();
-      throw new Error(`Jira API error (${response.status}): ${body}`);
-    }
-
-    if (response.status === 204) return undefined as T;
-    return response.json() as Promise<T>;
   }
 
   async getProjects(): Promise<JiraProject[]> {
@@ -98,7 +120,6 @@ export class JiraService {
   }
 
   async createTicket(data: CreateTicketDto): Promise<JiraTicketResult> {
-    // Reporter = assignee (담당자가 보고자)
     const reporterId = data.assigneeId || (await this.getMyself()).accountId;
 
     const fields: Record<string, unknown> = {
@@ -181,12 +202,12 @@ export class JiraService {
     });
   }
 
-  async testConnection(): Promise<boolean> {
+  async testConnection(): Promise<{ ok: boolean; error?: string }> {
     try {
-      await this.request('/rest/api/3/myself');
-      return true;
-    } catch {
-      return false;
+      await this.request<{ accountId: string }>('/rest/api/3/myself');
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: (err as Error).message };
     }
   }
 }

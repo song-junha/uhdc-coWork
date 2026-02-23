@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus, ExternalLink, Settings, Ticket, KeyRound, ChevronDown, ChevronUp, X, RefreshCw, Circle } from 'lucide-react';
+import { Plus, ExternalLink, Settings, KeyRound, ChevronDown, ChevronUp, RefreshCw, Circle } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useJiraStore } from './useJiraStore';
 import AssigneeSelector, { type SelectedAssignee } from '../../components/AssigneeSelector';
@@ -122,26 +122,8 @@ function CreatedTab() {
 
   return (
     <>
-      {history.map(item => (
-        <div key={item.id} className="group flex items-center gap-2 py-2 border-b border-[var(--border)]">
-          <Ticket size={14} className="text-[var(--primary)] shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-mono font-medium text-[var(--primary)]">{item.ticketKey}</p>
-            <p className="text-[12px] truncate">{item.summary}</p>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); window.electronAPI.shell.openExternal(item.jiraUrl); }}
-            className="text-[var(--text-secondary)] hover:text-[var(--primary)]"
-          >
-            <ExternalLink size={12} />
-          </button>
-          <button
-            onClick={async (e) => { e.stopPropagation(); await window.electronAPI.jira.deleteHistory(item.id); fetchHistory(); }}
-            className="opacity-0 group-hover:opacity-100 text-[var(--text-secondary)] hover:text-[var(--danger)] transition-opacity"
-          >
-            <X size={12} />
-          </button>
-        </div>
+      {history.map(issue => (
+        <TicketItem key={issue.id} issue={issue} onTransitioned={fetchHistory} />
       ))}
     </>
   );
@@ -282,6 +264,7 @@ function JiraSetup({ onDone }: { onDone: () => void }) {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'failed' | null>(null);
+  const [testError, setTestError] = useState('');
   const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
@@ -305,11 +288,14 @@ function JiraSetup({ onDone }: { onDone: () => void }) {
   const handleTest = async () => {
     setTesting(true);
     setTestResult(null);
+    setTestError('');
     await window.electronAPI.settings.set('jira_base_url', baseUrl.replace(/\/$/, ''));
     await window.electronAPI.settings.set('jira_email', email);
     await window.electronAPI.settings.set('jira_api_token', token);
-    const ok = await window.electronAPI.jira.testConnection();
+    const result = await window.electronAPI.jira.testConnection();
+    const ok = typeof result === 'boolean' ? result : result.ok;
     setTestResult(ok ? 'success' : 'failed');
+    if (!ok && typeof result === 'object' && result.error) setTestError(result.error);
     setTesting(false);
   };
 
@@ -374,6 +360,7 @@ function JiraSetup({ onDone }: { onDone: () => void }) {
         {testResult && (
           <p className={`text-[12px] ${testResult === 'success' ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
             {testResult === 'success' ? t('jira.testSuccess') : t('jira.testFailed')}
+            {testError && <span className="block text-[10px] mt-0.5 opacity-70 select-text cursor-text">{testError}</span>}
           </p>
         )}
       </div>

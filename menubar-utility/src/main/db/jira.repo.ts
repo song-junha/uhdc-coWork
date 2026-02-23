@@ -42,6 +42,10 @@ export function deleteHistory(id: string): void {
   getDatabase().prepare('DELETE FROM jira_history WHERE id = ?').run(id);
 }
 
+export function clearAllHistory(): void {
+  getDatabase().prepare('DELETE FROM jira_history').run();
+}
+
 export function fixHistoryUrls(baseUrl: string): void {
   const db = getDatabase();
   const rows = db.prepare('SELECT id, ticket_key, jira_url FROM jira_history WHERE jira_url LIKE \'%/rest/api/%\'').all() as Record<string, unknown>[];

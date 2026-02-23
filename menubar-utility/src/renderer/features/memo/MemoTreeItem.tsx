@@ -3,6 +3,7 @@ import { ChevronRight, ChevronDown, Folder, FolderOpen, MoreHorizontal, Trash2, 
 import { cn } from '../../lib/utils';
 import { useMemoStore } from './useMemoStore';
 import { useI18n } from '../../hooks/useI18n';
+import { useDroppable } from '@dnd-kit/core';
 import type { MemoFolder } from '../../../shared/types/memo.types';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
@@ -10,9 +11,11 @@ interface MemoTreeItemProps {
   folder: MemoFolder;
   allFolders: MemoFolder[];
   depth: number;
+  isDraggingMemo?: boolean;
+  searchMatchFolderIds?: Set<string>;
 }
 
-export default function MemoTreeItem({ folder, allFolders, depth }: MemoTreeItemProps) {
+export default function MemoTreeItem({ folder, allFolders, depth, isDraggingMemo, searchMatchFolderIds }: MemoTreeItemProps) {
   const { activeFolderId, setActiveFolderId, toggleFolder, renameFolder, deleteFolder, createFolder } = useMemoStore();
   const { t } = useI18n();
   const [showMenu, setShowMenu] = useState(false);
@@ -24,6 +27,13 @@ export default function MemoTreeItem({ folder, allFolders, depth }: MemoTreeItem
   const children = allFolders.filter(f => f.parentId === folder.id);
   const isActive = activeFolderId === folder.id;
   const isExpanded = folder.isExpanded;
+  const hasSearchMatch = searchMatchFolderIds?.has(folder.id) ?? false;
+
+  // Droppable target for cross-folder DnD
+  const { isOver, setNodeRef: setDropRef } = useDroppable({
+    id: folder.id,
+    disabled: !isDraggingMemo,
+  });
 
   // Close menu on outside click
   useEffect(() => {
@@ -62,12 +72,15 @@ export default function MemoTreeItem({ folder, allFolders, depth }: MemoTreeItem
   return (
     <div>
       <div
+        ref={setDropRef}
         onClick={() => setActiveFolderId(folder.id)}
         onDoubleClick={handleDoubleClick}
         className={cn(
           'group flex items-center gap-1 px-2 py-1 rounded cursor-pointer text-[12px]',
           'hover:bg-[var(--surface)]',
-          isActive && 'bg-[var(--primary)]/10 text-[var(--primary)]'
+          isActive && 'bg-[var(--primary)]/10 text-[var(--primary)]',
+          isOver && isDraggingMemo && 'memo-drop-target',
+          hasSearchMatch && !isActive && 'memo-search-match',
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
@@ -98,41 +111,52 @@ export default function MemoTreeItem({ folder, allFolders, depth }: MemoTreeItem
           <span className="flex-1 truncate">{folder.name}</span>
         )}
 
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-            className="opacity-0 group-hover:opacity-100 text-[var(--text-secondary)] hover:text-[var(--text)]"
-          >
-            <MoreHorizontal size={14} />
-          </button>
+        {isDraggingMemo && isOver ? (
+          <span className="text-[10px] text-[var(--primary)] whitespace-nowrap">{t('memo.dropHere')}</span>
+        ) : (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+              className="opacity-0 group-hover:opacity-100 text-[var(--text-secondary)] hover:text-[var(--text)]"
+            >
+              <MoreHorizontal size={14} />
+            </button>
 
-          {showMenu && (
-            <div className="absolute right-0 top-5 z-20 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[120px]">
-              <button
-                onClick={(e) => { e.stopPropagation(); createFolder({ parentId: folder.id, name: t('memo.newFolder') }); setShowMenu(false); }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-[var(--surface)]"
-              >
-                <Folder size={12} /> {t('memo.subFolder')}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); startRename(); setShowMenu(false); }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-[var(--surface)]"
-              >
-                <Pencil size={12} /> {t('memo.rename')}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowConfirm(true); setShowMenu(false); }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[var(--danger)] hover:bg-[var(--surface)]"
-              >
-                <Trash2 size={12} /> {t('memo.delete')}
-              </button>
-            </div>
-          )}
-        </div>
+            {showMenu && (
+              <div className="absolute right-0 top-5 z-20 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[120px]">
+                <button
+                  onClick={(e) => { e.stopPropagation(); createFolder({ parentId: folder.id, name: t('memo.newFolder') }); setShowMenu(false); }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-[var(--surface)]"
+                >
+                  <Folder size={12} /> {t('memo.subFolder')}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); startRename(); setShowMenu(false); }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-[var(--surface)]"
+                >
+                  <Pencil size={12} /> {t('memo.rename')}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowConfirm(true); setShowMenu(false); }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[var(--danger)] hover:bg-[var(--surface)]"
+                >
+                  <Trash2 size={12} /> {t('memo.delete')}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {isExpanded && children.map(child => (
-        <MemoTreeItem key={child.id} folder={child} allFolders={allFolders} depth={depth + 1} />
+        <MemoTreeItem
+          key={child.id}
+          folder={child}
+          allFolders={allFolders}
+          depth={depth + 1}
+          isDraggingMemo={isDraggingMemo}
+          searchMatchFolderIds={searchMatchFolderIds}
+        />
       ))}
 
       {showConfirm && (

@@ -10,6 +10,13 @@ export default function MemberList() {
   const [editName, setEditName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
   const team = teams.find(te => te.id === activeTeamId);
   if (!team) return null;
 
@@ -29,13 +36,6 @@ export default function MemberList() {
     setEditName(team.name);
     setEditing(true);
   };
-
-  useEffect(() => {
-    if (editing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editing]);
 
   const confirmRename = async () => {
     if (!activeTeamId || !editName.trim() || editName.trim() === team.name) {

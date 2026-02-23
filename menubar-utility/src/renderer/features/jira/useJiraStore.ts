@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import type { JiraProject, JiraIssueType, JiraHistoryItem, JiraSearchIssue } from '../../../shared/types/jira.types';
+import type { JiraProject, JiraIssueType, JiraSearchIssue } from '../../../shared/types/jira.types';
 
 type TicketTab = 'created' | 'open' | 'done';
 
 interface JiraStore {
   projects: JiraProject[];
   issueTypes: JiraIssueType[];
-  history: JiraHistoryItem[];
+  history: JiraSearchIssue[];
   openTickets: JiraSearchIssue[];
   doneTickets: JiraSearchIssue[];
   activeTab: TicketTab;
@@ -61,10 +61,15 @@ export const useJiraStore = create<JiraStore>((set, get) => ({
   },
 
   fetchHistory: async () => {
-    const all = await window.electronAPI.jira.getHistory();
-    const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000;
-    const history = all.filter(item => new Date(item.createdAt).getTime() >= twoDaysAgo);
-    set({ history });
+    try {
+      const tickets = await window.electronAPI.jira.searchTickets(
+        'reporter = currentUser() AND created >= -2d ORDER BY created DESC',
+        15
+      );
+      set({ history: tickets });
+    } catch {
+      set({ history: [] });
+    }
   },
 
   fetchMyTickets: async () => {

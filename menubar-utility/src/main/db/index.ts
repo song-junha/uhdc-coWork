@@ -14,6 +14,9 @@ export function getDatabase(): Database.Database {
 
 export function initDatabase(): void {
   const userDataPath = app.getPath('userData');
+  if (!fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  }
   const dbPath = path.join(userDataPath, 'menubar-utility.db');
 
   db = new Database(dbPath);

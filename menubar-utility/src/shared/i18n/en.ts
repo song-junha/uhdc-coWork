@@ -200,6 +200,11 @@ export const en = {
   'settings.cloudSync.requiresSupabase': 'Requires Supabase connection',
   'settings.cloudSync.syncing': 'Syncing...',
 
+  'memo.preview': 'Preview',
+  'memo.edit': 'Edit',
+  'memo.dropHere': 'Move here',
+  'memo.searchResults': '{count} result(s)',
+
   // Memo context menu
   'memo.delete': 'Delete',
 
@@ -212,5 +217,8 @@ export const en = {
   'settings.theme.system': 'System',
   'settings.about': 'About',
   'settings.version': 'Version',
+  'settings.resetData': 'Reset Data',
+  'settings.resetDataConfirm': 'All data will be deleted and the app will restart. Continue?',
+  'settings.quit': 'Quit App',
   'settings.back': 'Back',
 } as const;

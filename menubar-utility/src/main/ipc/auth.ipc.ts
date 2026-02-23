@@ -71,7 +71,8 @@ export function registerAuthHandlers(): void {
 
       // AuthUser에 jiraAccountId 포함
       return { ...user, id: user.id, jiraAccountId: myself.accountId };
-    } catch {
+    } catch (err) {
+      console.error('[autoAuth] failed:', (err as Error).message);
       return null;
     }
   });

@@ -92,6 +92,9 @@ CREATE POLICY "Authenticated users can create teams"
 CREATE POLICY "Team creators can update teams"
   ON public.teams FOR UPDATE
   USING (created_by = auth.uid());
+CREATE POLICY "Team creators can delete teams"
+  ON public.teams FOR DELETE
+  USING (created_by = auth.uid());
 
 -- Team Members: team creator (via teams.created_by) can manage members
 CREATE POLICY "Team creators can view members"

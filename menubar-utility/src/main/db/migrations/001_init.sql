@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Default settings
 INSERT OR IGNORE INTO settings (key, value) VALUES
   ('theme', 'system'),
-  ('jira_base_url', ''),
+  ('jira_base_url', 'https://lgdigitalcommerce.atlassian.net'),
   ('jira_email', ''),
   ('jira_api_token', ''),
-  ('supabase_url', ''),
-  ('supabase_anon_key', ''),
+  ('supabase_url', 'https://bowhdymawodkrtvqmdts.supabase.co'),
+  ('supabase_anon_key', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvd2hkeW1hd29ka3J0dnFtZHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NjY5ODMsImV4cCI6MjA4NzE0Mjk4M30.v59ZhoWpwp6uzNGV1UDjJSvWFJJ_hXJj7fb8QQgPdLQ'),
   ('global_hotkey', 'CommandOrControl+Shift+M');

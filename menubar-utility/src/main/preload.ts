@@ -28,8 +28,6 @@ const api: ElectronAPI = {
     getProjects: () => ipcRenderer.invoke('jira:getProjects'),
     getIssueTypes: (projectKey) => ipcRenderer.invoke('jira:getIssueTypes', projectKey),
     createTicket: (data) => ipcRenderer.invoke('jira:createTicket', data),
-    getHistory: () => ipcRenderer.invoke('jira:getHistory'),
-    deleteHistory: (id) => ipcRenderer.invoke('jira:deleteHistory', id),
     searchTickets: (jql, maxResults) => ipcRenderer.invoke('jira:searchTickets', jql, maxResults),
     testConnection: () => ipcRenderer.invoke('jira:testConnection'),
     getMyself: () => ipcRenderer.invoke('jira:getMyself'),
@@ -80,6 +78,10 @@ const api: ElectronAPI = {
   },
   shell: {
     openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+  },
+  app: {
+    quit: () => ipcRenderer.invoke('app:quit'),
+    resetData: () => ipcRenderer.invoke('app:resetData'),
   },
   on: (channel, callback) => {
     ipcRenderer.on(channel, (_event, ...args) => callback(...args));

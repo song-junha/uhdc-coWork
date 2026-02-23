@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => {
         vite: {
           define: {
             // main process 빌드에만 주입 (Renderer에는 포함되지 않음)
-            'process.env.SUPABASE_URL': JSON.stringify(env.SUPABASE_URL || ''),
-            'process.env.SUPABASE_ANON_KEY': JSON.stringify(env.SUPABASE_ANON_KEY || ''),
+            'process.env.SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL || env.SUPABASE_URL || ''),
+            'process.env.SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || ''),
           },
           build: {
             outDir: path.resolve(__dirname, 'dist/main'),

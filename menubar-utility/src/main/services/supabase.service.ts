@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient, type RealtimeChannel } from '@supabase/supabase-js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { app } from 'electron';
+import { app, net } from 'electron';
 import * as settingsRepo from '../db/settings.repo';
 import type { AuthUser } from '../../shared/types/team.types';
 
@@ -26,8 +26,12 @@ function loadEnvDefaults(): { url: string; key: string } {
       let key = '';
       for (const line of lines) {
         const trimmed = line.trim();
-        if (trimmed.startsWith('SUPABASE_URL=')) url = trimmed.split('=').slice(1).join('=');
-        if (trimmed.startsWith('SUPABASE_ANON_KEY=')) key = trimmed.split('=').slice(1).join('=');
+        if (trimmed.startsWith('SUPABASE_URL=') || trimmed.startsWith('VITE_SUPABASE_URL=')) {
+          url = trimmed.split('=').slice(1).join('=');
+        }
+        if (trimmed.startsWith('SUPABASE_ANON_KEY=') || trimmed.startsWith('VITE_SUPABASE_ANON_KEY=')) {
+          key = trimmed.split('=').slice(1).join('=');
+        }
       }
       if (url && key) return { url, key };
     } catch {}
@@ -63,7 +67,12 @@ export class SupabaseService {
       throw new Error('Supabase is not configured. Please set URL and Anon Key in Settings.');
     }
 
-    this.client = createClient(url, key);
+    this.client = createClient(url, key, {
+      global: {
+        fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+          net.fetch(input as string, init),
+      },
+    });
     return this.client;
   }
 

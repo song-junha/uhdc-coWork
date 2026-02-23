@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, Globe, Palette, Cloud } from 'lucide-react';
+import { ChevronLeft, Globe, Palette, Cloud, Power, RotateCcw } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useTheme } from '../../hooks/useTheme';
 import { localeNames, type Locale } from '../../../shared/i18n';
@@ -154,9 +154,27 @@ export default function SettingsView({ onClose }: SettingsViewProps) {
         </div>
       </div>
 
-      <div className="px-3 py-2 border-t border-[var(--border)] text-center">
-        <p className="text-[10px] text-[var(--text-secondary)]">
-          {t('settings.version')}: 0.1.0
+      <div className="px-3 py-2 border-t border-[var(--border)] space-y-2">
+        <button
+          onClick={() => {
+            if (confirm(t('settings.resetDataConfirm'))) {
+              window.electronAPI.app.resetData();
+            }
+          }}
+          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface)] rounded-lg transition-colors"
+        >
+          <RotateCcw size={14} />
+          {t('settings.resetData')}
+        </button>
+        <button
+          onClick={() => window.electronAPI.app.quit()}
+          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-[var(--danger)] hover:bg-[var(--danger)]/10 rounded-lg transition-colors"
+        >
+          <Power size={14} />
+          {t('settings.quit')}
+        </button>
+        <p className="text-[10px] text-[var(--text-secondary)] text-center">
+          {t('settings.version')}: 1.0.0
         </p>
       </div>
     </div>
