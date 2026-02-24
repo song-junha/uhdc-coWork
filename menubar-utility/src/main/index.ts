@@ -11,6 +11,12 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.menubar-utility.app');
 }
 
+// Prevent multiple instances (must be before any other initialization)
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 const isDev = !app.isPackaged;
 
 // IPC 핸들러를 menubar보다 먼저 등록 (preloadWindow: true이므로 윈도우가 먼저 로드됨)
@@ -103,14 +109,8 @@ app.on('will-quit', () => {
   closeDatabase();
 });
 
-// Prevent multiple instances
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    if (mb.window) {
-      mb.showWindow();
-    }
-  });
-}
+app.on('second-instance', () => {
+  if (mb.window) {
+    mb.showWindow();
+  }
+});

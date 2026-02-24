@@ -43,10 +43,26 @@ export function registerAuthHandlers(): void {
       const jira = new JiraService();
       const myself = await jira.getMyself();
       const jiraEmail = settingsRepo.getSetting('jira_email')!;
+      console.log('[autoAuth] jiraEmail:', jiraEmail, 'jiraDisplayName:', myself.displayName);
 
-      // 이미 세션 있으면 재사용
+      // 이미 세션 있으면 이메일 일치 여부 확인 후 재사용
       const existing = await supabaseService.getSession();
-      const user = existing ?? await supabaseService.autoSignInFromJira(jiraEmail, myself.displayName);
+      console.log('[autoAuth] existing session:', existing?.email ?? 'none');
+      let user: AuthUser | null = null;
+      if (existing && existing.email === jiraEmail) {
+        console.log('[autoAuth] session email matches, reusing');
+        user = existing;
+      } else {
+        // 계정 변경 시 기존 세션 정리 후 재로그인
+        if (existing) {
+          console.log('[autoAuth] email mismatch, signing out old session...');
+          try { await supabaseService.signOut(); } catch { /* ignore */ }
+          supabaseService.resetClient();
+        }
+        console.log('[autoAuth] calling autoSignInFromJira...');
+        user = await supabaseService.autoSignInFromJira(jiraEmail, myself.displayName);
+        console.log('[autoAuth] autoSignInFromJira result:', user?.email ?? 'null');
+      }
       if (!user) return null;
 
       // 초기 동기화

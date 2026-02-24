@@ -123,7 +123,7 @@ function CreatedTab() {
   return (
     <>
       {history.map(issue => (
-        <TicketItem key={issue.id} issue={issue} onTransitioned={fetchHistory} />
+        <TicketItem key={issue.key} issue={issue} onTransitioned={fetchHistory} />
       ))}
     </>
   );
@@ -139,6 +139,18 @@ function TicketItem({ issue, onTransitioned }: { issue: JiraSearchIssue; onTrans
   const [transitions, setTransitions] = useState<JiraTransition[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const [loading, setLoading] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   const handleOpen = () => {
     const baseUrl = window.electronAPI.settings.get('jira_base_url');
@@ -172,7 +184,7 @@ function TicketItem({ issue, onTransitioned }: { issue: JiraSearchIssue; onTrans
   return (
     <div className="group flex items-center gap-2 py-2 border-b border-[var(--border)] relative">
       <button onClick={handleStatusClick} className="shrink-0" title="Change status">
-        <Circle size={8} className={`${statusColor} fill-current ${loading ? 'animate-pulse' : ''}`} />
+        <Circle size={12} className={`${statusColor} fill-current ${loading ? 'animate-pulse' : ''}`} />
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
@@ -194,7 +206,7 @@ function TicketItem({ issue, onTransitioned }: { issue: JiraSearchIssue; onTrans
       </button>
 
       {showMenu && transitions.length > 0 && (
-        <div className="absolute left-4 top-full z-30 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[140px]">
+        <div ref={menuRef} className="absolute left-4 top-full z-30 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[160px]">
           {transitions.map(tr => {
             const trColor = tr.to.statusCategory.key === 'done' ? 'text-green-500'
               : tr.to.statusCategory.key === 'indeterminate' ? 'text-blue-500'
@@ -203,9 +215,9 @@ function TicketItem({ issue, onTransitioned }: { issue: JiraSearchIssue; onTrans
               <button
                 key={tr.id}
                 onClick={() => handleTransition(tr.id)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-[var(--surface)] transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-[var(--surface)] transition-colors"
               >
-                <Circle size={6} className={`${trColor} fill-current`} />
+                <Circle size={10} className={`${trColor} fill-current`} />
                 <span>{tr.name}</span>
               </button>
             );
@@ -281,6 +293,10 @@ function JiraSetup({ onDone }: { onDone: () => void }) {
     await window.electronAPI.settings.set('jira_base_url', baseUrl.replace(/\/$/, ''));
     await window.electronAPI.settings.set('jira_email', email);
     await window.electronAPI.settings.set('jira_api_token', token);
+    // Jira 정보 변경 시 Supabase 계정 자동 생성/전환
+    try {
+      await window.electronAPI.auth.autoAuth();
+    } catch { /* non-fatal */ }
     setSaving(false);
     onDone();
   };
@@ -296,6 +312,12 @@ function JiraSetup({ onDone }: { onDone: () => void }) {
     const ok = typeof result === 'boolean' ? result : result.ok;
     setTestResult(ok ? 'success' : 'failed');
     if (!ok && typeof result === 'object' && result.error) setTestError(result.error);
+    // 연결 테스트 성공 시 Supabase 계정도 자동 생성/전환
+    if (ok) {
+      try {
+        await window.electronAPI.auth.autoAuth();
+      } catch { /* non-fatal */ }
+    }
     setTesting(false);
   };
 

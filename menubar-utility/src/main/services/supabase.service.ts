@@ -89,20 +89,25 @@ export class SupabaseService {
   async autoSignInFromJira(jiraEmail: string, displayName: string): Promise<AuthUser> {
     if (!this.isConfigured()) throw new Error('Supabase not configured');
 
+    console.log('[autoSignIn] start:', jiraEmail, displayName);
     const client = this.getClient();
     // 결정적 비밀번호: Jira 이메일 기반 (Supabase는 RLS로 보호됨)
     const password = `menubar_${jiraEmail}_auto`;
 
     // 먼저 로그인 시도
+    console.log('[autoSignIn] trying signInWithPassword...');
     const { data: signInData, error: signInError } = await client.auth.signInWithPassword({
       email: jiraEmail,
       password,
     });
 
     if (!signInError && signInData.user) {
+      console.log('[autoSignIn] signIn success, userId:', signInData.user.id);
       await this.upsertProfile(signInData.user.id, jiraEmail, displayName);
       return this.mapUser(signInData.user);
     }
+
+    console.log('[autoSignIn] signIn failed:', signInError?.message, '→ trying signUp...');
 
     // 로그인 실패 → 회원가입
     const { data: signUpData, error: signUpError } = await client.auth.signUp({
@@ -111,14 +116,22 @@ export class SupabaseService {
       options: { data: { display_name: displayName } },
     });
 
-    if (signUpError) throw new Error(signUpError.message);
-    if (!signUpData.user) throw new Error('Auto sign-up failed');
+    if (signUpError) {
+      console.error('[autoSignIn] signUp failed:', signUpError.message);
+      throw new Error(signUpError.message);
+    }
+    if (!signUpData.user) {
+      console.error('[autoSignIn] signUp: no user returned');
+      throw new Error('Auto sign-up failed');
+    }
 
     // 이메일 확인이 필요한 경우 세션이 없음
     if (!signUpData.session) {
+      console.error('[autoSignIn] signUp: no session (email confirmation enabled?)');
       throw new Error('Email confirmation is enabled in Supabase. Please disable it: Dashboard > Authentication > Providers > Email > Confirm email OFF');
     }
 
+    console.log('[autoSignIn] signUp success, userId:', signUpData.user.id);
     await this.upsertProfile(signUpData.user.id, jiraEmail, displayName);
 
     return this.mapUser(signUpData.user);
