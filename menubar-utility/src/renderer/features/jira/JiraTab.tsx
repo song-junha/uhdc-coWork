@@ -3,7 +3,7 @@ import { Plus, ExternalLink, Settings, KeyRound, ChevronDown, ChevronUp, Refresh
 import { useI18n } from '../../hooks/useI18n';
 import { useJiraStore } from './useJiraStore';
 import AssigneeSelector, { type SelectedAssignee } from '../../components/AssigneeSelector';
-import type { JiraSearchIssue, JiraTransition } from '../../../shared/types/jira.types';
+import type { JiraSearchIssue, JiraTransition, JiraCreateField } from '../../../shared/types/jira.types';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -393,24 +393,91 @@ function JiraSetup({ onDone }: { onDone: () => void }) {
 const DEFAULT_PROJECT = 'DCBGIT';
 const DEFAULT_ISSUE_TYPE_NAME = '개발문의';
 
-const INQUIRY_TYPE_OPTIONS = [
-  { id: '11636', label: '문의 응대(DM, 전화, 이메일 등)' },
-  { id: '11637', label: '회의 참석' },
-  { id: '11638', label: '동료 지원' },
-];
+function DynamicField({ field, value, onChange }: {
+  field: JiraCreateField;
+  value: unknown;
+  onChange: (val: unknown) => void;
+}) {
+  const inputClass = "w-full mt-0.5 px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md";
+
+  if (field.allowedValues && field.allowedValues.length > 0) {
+    return (
+      <div>
+        <label className="text-[10px] text-[var(--text-secondary)]">
+          {field.name}{field.required && ' *'}
+        </label>
+        <select
+          value={(value as string) || ''}
+          onChange={e => onChange(e.target.value)}
+          className={inputClass}
+        >
+          <option value="">{field.name} 선택</option>
+          {field.allowedValues!.map(opt => (
+            <option key={opt.id} value={opt.id}>{opt.value || opt.name || opt.id}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  if (field.schema.type === 'date') {
+    return (
+      <div>
+        <label className="text-[10px] text-[var(--text-secondary)]">
+          {field.name}{field.required && ' *'}
+        </label>
+        <input
+          type="date"
+          value={(value as string) || ''}
+          onChange={e => onChange(e.target.value)}
+          className={inputClass}
+        />
+      </div>
+    );
+  }
+
+  if (field.schema.type === 'number') {
+    return (
+      <div>
+        <label className="text-[10px] text-[var(--text-secondary)]">
+          {field.name}{field.required && ' *'}
+        </label>
+        <input
+          type="number"
+          step="0.1"
+          min="0"
+          value={(value as string) || ''}
+          onChange={e => onChange(e.target.value)}
+          className={inputClass}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <label className="text-[10px] text-[var(--text-secondary)]">
+        {field.name}{field.required && ' *'}
+      </label>
+      <input
+        type="text"
+        value={(value as string) || ''}
+        onChange={e => onChange(e.target.value)}
+        className={inputClass}
+      />
+    </div>
+  );
+}
 
 function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: string }[]; onClose: () => void }) {
   const { t } = useI18n();
-  const { issueTypes, fetchIssueTypes } = useJiraStore();
-  const today = new Date().toISOString().slice(0, 10);
+  const { issueTypes, createFields, createFieldsLoading, fetchIssueTypes, fetchCreateFields } = useJiraStore();
   const [projectKey, setProjectKey] = useState(DEFAULT_PROJECT);
   const [issueTypeId, setIssueTypeId] = useState('');
   const [summary, setSummary] = useState('');
   const [description, setDescription] = useState('');
-  const [inquiryTypeId, setInquiryTypeId] = useState('');
   const [selectedAssignees, setSelectedAssignees] = useState<SelectedAssignee[]>([]);
-  const [dueDate, setDueDate] = useState(today);
-  const [workDays, setWorkDays] = useState('0.1');
+  const [customValues, setCustomValues] = useState<Record<string, unknown>>({});
   const [submitting, setSubmitting] = useState(false);
 
   // Auto-fetch issue types + get current user as default assignee
@@ -432,6 +499,33 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
     }
   }, [issueTypes]);
 
+  // Fetch create fields when issue type changes
+  useEffect(() => {
+    if (projectKey && issueTypeId) {
+      setCustomValues({});
+      fetchCreateFields(projectKey, issueTypeId);
+    }
+  }, [projectKey, issueTypeId]);
+
+  // Set default values when createFields are loaded
+  useEffect(() => {
+    if (createFields.length > 0) {
+      const defaults: Record<string, unknown> = {};
+      for (const field of createFields) {
+        if (field.defaultValue != null) {
+          if (field.allowedValues && typeof field.defaultValue === 'object' && field.defaultValue !== null && 'id' in (field.defaultValue as Record<string, unknown>)) {
+            defaults[field.key] = (field.defaultValue as { id: string }).id;
+          } else {
+            defaults[field.key] = field.defaultValue;
+          }
+        }
+      }
+      if (Object.keys(defaults).length > 0) {
+        setCustomValues(prev => ({ ...defaults, ...prev }));
+      }
+    }
+  }, [createFields]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -442,22 +536,44 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, projectKey, issueTypeId, summary, selectedAssignees]);
+  }, [onClose, projectKey, issueTypeId, summary, selectedAssignees, customValues]);
 
   const handleProjectChange = async (key: string) => {
     setProjectKey(key);
     setIssueTypeId('');
+    setCustomValues({});
     if (key) await fetchIssueTypes(key);
   };
 
+  const handleCustomValueChange = (key: string, value: unknown) => {
+    setCustomValues(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Check if all required dynamic fields are filled
+  const requiredFieldsMissing = createFields
+    .filter(f => f.required)
+    .some(f => {
+      const val = customValues[f.key];
+      return val === undefined || val === null || val === '';
+    });
+
   const handleSubmit = async () => {
-    if (!projectKey || !issueTypeId || !summary || selectedAssignees.length === 0) return;
+    if (!projectKey || !issueTypeId || !summary || selectedAssignees.length === 0 || requiredFieldsMissing) return;
     setSubmitting(true);
     try {
       const customFields: Record<string, unknown> = {};
-      if (inquiryTypeId) customFields.customfield_10890 = { id: inquiryTypeId };
-      if (dueDate) customFields.customfield_10267 = dueDate;
-      if (workDays) customFields.customfield_10126 = parseFloat(workDays) || 0.1;
+      for (const field of createFields) {
+        const val = customValues[field.key];
+        if (val === undefined || val === null || val === '') continue;
+
+        if (field.allowedValues && field.allowedValues.length > 0) {
+          customFields[field.key] = { id: val as string };
+        } else if (field.schema.type === 'number') {
+          customFields[field.key] = parseFloat(val as string) || 0;
+        } else {
+          customFields[field.key] = val;
+        }
+      }
 
       for (const assignee of selectedAssignees) {
         await window.electronAPI.jira.createTicket({
@@ -492,33 +608,28 @@ function JiraCreateForm({ projects, onClose }: { projects: { key: string; name: 
           <option value="">{t('jira.issueType')}</option>
           {issueTypes.map(tp => <option key={tp.id} value={tp.id}>{tp.name}</option>)}
         </select>
-        {issueTypeId === '10149' && (
-          <select value={inquiryTypeId} onChange={e => setInquiryTypeId(e.target.value)} className="w-full px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md">
-            <option value="">개발문의 타입 선택</option>
-            {INQUIRY_TYPE_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-          </select>
-        )}
         <input value={summary} onChange={e => setSummary(e.target.value)} placeholder={t('jira.summary')} autoFocus className="w-full px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md" />
         <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('jira.description')} rows={3} className="w-full px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md resize-none" />
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <AssigneeSelector
-              mode="multi"
-              selected={selectedAssignees}
-              onChange={setSelectedAssignees}
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-[10px] text-[var(--text-secondary)]">실공수(Day)</label>
-            <input type="number" step="0.1" min="0" value={workDays} onChange={e => setWorkDays(e.target.value)} className="w-full mt-0.5 px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md" />
-          </div>
-        </div>
         <div>
-          <label className="text-[10px] text-[var(--text-secondary)]">배포/작업 완료일자</label>
-          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="w-full mt-0.5 px-2.5 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md" />
+          <AssigneeSelector
+            mode="multi"
+            selected={selectedAssignees}
+            onChange={setSelectedAssignees}
+          />
         </div>
+        {createFieldsLoading && (
+          <p className="text-[11px] text-[var(--text-secondary)] py-1">필드 로딩 중...</p>
+        )}
+        {createFields.map(field => (
+          <DynamicField
+            key={field.key}
+            field={field}
+            value={customValues[field.key]}
+            onChange={(val) => handleCustomValueChange(field.key, val)}
+          />
+        ))}
       </div>
-      <button onClick={handleSubmit} disabled={!projectKey || !issueTypeId || !summary || selectedAssignees.length === 0 || submitting} className="w-full py-2 mt-3 text-sm font-medium text-white bg-[var(--primary)] rounded-md disabled:opacity-40">
+      <button onClick={handleSubmit} disabled={!projectKey || !issueTypeId || !summary || selectedAssignees.length === 0 || requiredFieldsMissing || submitting} className="w-full py-2 mt-3 text-sm font-medium text-white bg-[var(--primary)] rounded-md disabled:opacity-40">
         {submitting ? t('jira.creating') : showBulkLabel ? t('jira.createBulk', { count: bulkCount }) : t('jira.create')}
       </button>
     </div>

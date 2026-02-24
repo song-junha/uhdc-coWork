@@ -1,7 +1,7 @@
 import { safeStorage } from 'electron';
 import https from 'https';
 import * as settingsRepo from '../db/settings.repo';
-import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser, JiraTransition } from '../../shared/types/jira.types';
+import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser, JiraTransition, JiraCreateField } from '../../shared/types/jira.types';
 
 interface CacheEntry<T> {
   data: T;
@@ -100,6 +100,37 @@ export class JiraService {
     const projects = data.map(p => ({ id: p.id, key: p.key, name: p.name }));
     this.setCache('projects', projects);
     return projects;
+  }
+
+  async getCreateFields(projectKey: string, issueTypeId: string): Promise<JiraCreateField[]> {
+    const cacheKey = `createFields:${projectKey}:${issueTypeId}`;
+    const cached = this.getCached<JiraCreateField[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.request<{ values: Array<{
+      fieldId: string;
+      name: string;
+      required: boolean;
+      schema: { type: string; custom?: string };
+      allowedValues?: Array<{ id: string; value?: string; name?: string }>;
+      defaultValue?: unknown;
+    }> }>(`/rest/api/3/issue/createmeta/${projectKey}/issuetypes/${issueTypeId}`);
+
+    const SKIP = new Set(['summary', 'description', 'project', 'issuetype', 'reporter', 'assignee', 'labels']);
+
+    const fields = data.values
+      .filter(f => !SKIP.has(f.fieldId) && (f.required || f.fieldId.startsWith('customfield_')))
+      .map(f => ({
+        key: f.fieldId,
+        name: f.name,
+        required: f.required,
+        schema: { type: f.schema.type, custom: f.schema.custom },
+        allowedValues: f.allowedValues?.map(v => ({ id: v.id, value: v.value, name: v.name })),
+        defaultValue: f.defaultValue,
+      }));
+
+    this.setCache(cacheKey, fields);
+    return fields;
   }
 
   async getIssueTypes(projectKey: string): Promise<JiraIssueType[]> {

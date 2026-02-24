@@ -6,6 +6,7 @@ import JiraTab from './features/jira/JiraTab';
 import CalendarTab from './features/calendar/CalendarTab';
 import TeamTab from './features/team/TeamTab';
 import SettingsView from './features/settings/SettingsView';
+import { useWindowScale } from './hooks/useWindowScale';
 import './hooks/useTheme'; // hydrate theme on startup
 
 const tabComponents: Record<TabId, React.ComponentType> = {
@@ -17,6 +18,7 @@ const tabComponents: Record<TabId, React.ComponentType> = {
 };
 
 export default function App() {
+  useWindowScale();
   const [activeTab, setActiveTab] = useState<TabId>('todo');
   const [showSettings, setShowSettings] = useState(false);
 
@@ -55,7 +57,13 @@ export default function App() {
   const ActiveComponent = tabComponents[activeTab];
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--bg)] rounded-xl overflow-hidden">
+    <div className="flex flex-col h-screen bg-[var(--bg)] overflow-hidden">
+      {/* 리사이즈 핸들 (frameless 윈도우용) */}
+      <div className="fixed top-0 right-0 w-1.5 h-full cursor-ew-resize z-50" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties} />
+      <div className="fixed bottom-0 left-0 w-full h-1.5 cursor-ns-resize z-50" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties} />
+      <div className="fixed bottom-0 right-0 w-3 h-3 cursor-nwse-resize z-50" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties} />
+      <div className="fixed top-0 left-0 w-1.5 h-full cursor-ew-resize z-50" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties} />
+
       <TabNav activeTab={activeTab} onTabChange={(tab) => { setShowSettings(false); setActiveTab(tab); }} onSettingsClick={() => setShowSettings(true)} />
       <main className="flex-1 overflow-hidden">
         {showSettings ? (

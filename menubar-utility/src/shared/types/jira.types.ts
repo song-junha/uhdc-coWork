@@ -65,3 +65,21 @@ export interface JiraUser {
   emailAddress?: string;
   avatarUrl?: string;
 }
+
+export interface JiraFieldOption {
+  id: string;
+  value?: string;
+  name?: string;
+}
+
+export interface JiraCreateField {
+  key: string;
+  name: string;
+  required: boolean;
+  schema: {
+    type: string;
+    custom?: string;
+  };
+  allowedValues?: JiraFieldOption[];
+  defaultValue?: unknown;
+}

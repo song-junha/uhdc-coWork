@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { JiraProject, JiraIssueType, JiraSearchIssue } from '../../../shared/types/jira.types';
+import type { JiraProject, JiraIssueType, JiraSearchIssue, JiraCreateField } from '../../../shared/types/jira.types';
 
 type TicketTab = 'created' | 'open' | 'done';
 
@@ -14,10 +14,13 @@ interface JiraStore {
   isLoading: boolean;
   showCreateForm: boolean;
   ticketsLoading: boolean;
+  createFields: JiraCreateField[];
+  createFieldsLoading: boolean;
 
   checkConfig: () => Promise<void>;
   fetchProjects: () => Promise<void>;
   fetchIssueTypes: (projectKey: string) => Promise<void>;
+  fetchCreateFields: (projectKey: string, issueTypeId: string) => Promise<void>;
   fetchHistory: () => Promise<void>;
   fetchMyTickets: () => Promise<void>;
   setActiveTab: (tab: TicketTab) => void;
@@ -35,6 +38,8 @@ export const useJiraStore = create<JiraStore>((set, get) => ({
   isLoading: false,
   showCreateForm: false,
   ticketsLoading: false,
+  createFields: [],
+  createFieldsLoading: false,
 
   checkConfig: async () => {
     const baseUrl = await window.electronAPI.settings.get('jira_base_url');
@@ -58,6 +63,18 @@ export const useJiraStore = create<JiraStore>((set, get) => ({
   fetchIssueTypes: async (projectKey) => {
     const types = await window.electronAPI.jira.getIssueTypes(projectKey);
     set({ issueTypes: types });
+  },
+
+  fetchCreateFields: async (projectKey, issueTypeId) => {
+    set({ createFieldsLoading: true, createFields: [] });
+    try {
+      const fields = await window.electronAPI.jira.getCreateFields(projectKey, issueTypeId);
+      set({ createFields: fields });
+    } catch {
+      set({ createFields: [] });
+    } finally {
+      set({ createFieldsLoading: false });
+    }
   },
 
   fetchHistory: async () => {

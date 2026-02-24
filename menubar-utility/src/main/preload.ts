@@ -27,6 +27,7 @@ const api: ElectronAPI = {
   jira: {
     getProjects: () => ipcRenderer.invoke('jira:getProjects'),
     getIssueTypes: (projectKey) => ipcRenderer.invoke('jira:getIssueTypes', projectKey),
+    getCreateFields: (projectKey, issueTypeId) => ipcRenderer.invoke('jira:getCreateFields', projectKey, issueTypeId),
     createTicket: (data) => ipcRenderer.invoke('jira:createTicket', data),
     searchTickets: (jql, maxResults) => ipcRenderer.invoke('jira:searchTickets', jql, maxResults),
     testConnection: () => ipcRenderer.invoke('jira:testConnection'),

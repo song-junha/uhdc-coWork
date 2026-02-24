@@ -20,6 +20,10 @@ export function registerJiraHandlers(): void {
     return getJiraService().getIssueTypes(projectKey);
   });
 
+  ipcMain.handle('jira:getCreateFields', async (_event, projectKey: string, issueTypeId: string) => {
+    return getJiraService().getCreateFields(projectKey, issueTypeId);
+  });
+
   ipcMain.handle('jira:createTicket', async (_event, data: CreateTicketDto) => {
     return getJiraService().createTicket(data);
   });

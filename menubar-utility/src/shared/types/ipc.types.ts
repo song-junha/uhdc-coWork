@@ -1,6 +1,6 @@
 import type { Todo, CreateTodoDto, UpdateTodoDto, TodoFilter } from './todo.types';
 import type { MemoFolder, Memo, CreateFolderDto, UpdateFolderDto, CreateMemoDto, UpdateMemoDto } from './memo.types';
-import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser, JiraTransition } from './jira.types';
+import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser, JiraTransition, JiraCreateField } from './jira.types';
 import type { CalendarEvent, CreateEventDto, UpdateEventDto } from './calendar.types';
 import type { Team, TeamMember, CreateGroupDto, AuthUser } from './team.types';
 
@@ -30,6 +30,7 @@ export interface ElectronAPI {
   jira: {
     getProjects: () => Promise<JiraProject[]>;
     getIssueTypes: (projectKey: string) => Promise<JiraIssueType[]>;
+    getCreateFields: (projectKey: string, issueTypeId: string) => Promise<JiraCreateField[]>;
     createTicket: (data: CreateTicketDto) => Promise<JiraTicketResult>;
     searchTickets: (jql: string, maxResults?: number) => Promise<JiraSearchIssue[]>;
     testConnection: () => Promise<boolean | { ok: boolean; error?: string }>;
