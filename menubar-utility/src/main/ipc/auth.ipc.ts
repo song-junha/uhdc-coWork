@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { supabaseService } from '../services/supabase.service';
 import { JiraService } from '../services/jira.service';
-import { syncAll, pullAllPersonal } from '../services/sync.service';
+import { syncAll, pullAllPersonal, pullDirectTodos } from '../services/sync.service';
 import * as settingsRepo from '../db/settings.repo';
 import type { AuthUser } from '../../shared/types/team.types';
 
@@ -81,6 +81,13 @@ export function registerAuthHandlers(): void {
         } catch {
           // Non-fatal
         }
+      }
+
+      // Pull direct todos assigned to me
+      try {
+        await pullDirectTodos(myself.accountId);
+      } catch {
+        // Non-fatal
       }
 
       setupRealtime(myself.accountId, user.id);

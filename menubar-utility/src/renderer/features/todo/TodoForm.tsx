@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useTodoStore } from './useTodoStore';
+import { useTeamStore } from '../team/useTeamStore';
 import AssigneeSelector, { type SelectedAssignee } from '../../components/AssigneeSelector';
 import type { Todo } from '../../../shared/types/todo.types';
 
@@ -13,6 +14,7 @@ interface TodoFormProps {
 export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
   const { t } = useI18n();
   const { createTodo, updateTodo } = useTodoStore();
+  const { user } = useTeamStore();
   const [title, setTitle] = useState(existingTodo?.title ?? '');
   const [description, setDescription] = useState(existingTodo?.description ?? '');
   const [priority, setPriority] = useState(existingTodo?.priority ?? 'medium');
@@ -72,17 +74,35 @@ export default function TodoForm({ onClose, existingTodo }: TodoFormProps) {
         assigneeId: assignee?.jiraAccountId || null,
       });
     } else {
-      // Bulk creation: one todo per selected assignee (or one with no assignee)
-      const assignees = selectedAssignees.length > 0 ? selectedAssignees : [null];
-      for (const assignee of assignees) {
-        await createTodo({
-          title: title.trim(),
-          description,
-          priority,
-          dueDate: dueDate || undefined,
-          assigneeName: assignee?.displayName || undefined,
-          assigneeId: assignee?.jiraAccountId || undefined,
-        });
+      const myJiraId = user?.jiraAccountId ?? null;
+      if (selectedAssignees.length === 0) {
+        // No assignee: create personal todo
+        await createTodo({ title: title.trim(), description, priority, dueDate: dueDate || undefined });
+      } else {
+        for (const assignee of selectedAssignees) {
+          const isSelf = myJiraId && assignee.jiraAccountId === myJiraId;
+          if (isSelf || !myJiraId) {
+            // Self or not logged in: create personal todo
+            await createTodo({
+              title: title.trim(),
+              description,
+              priority,
+              dueDate: dueDate || undefined,
+              assigneeName: assignee.displayName,
+              assigneeId: assignee.jiraAccountId,
+            });
+          } else {
+            // Other person: push to Supabase direct_todos
+            await window.electronAPI.sync.sendDirectTodo({
+              creatorJiraId: myJiraId,
+              assigneeJiraId: assignee.jiraAccountId,
+              title: title.trim(),
+              description,
+              priority,
+              dueDate: dueDate || undefined,
+            });
+          }
+        }
       }
     }
 

@@ -71,6 +71,8 @@ const api: ElectronAPI = {
     pullCalendarEvents: () => ipcRenderer.invoke('sync:pullCalendarEvents'),
     pushAllPersonal: () => ipcRenderer.invoke('sync:pushAllPersonal'),
     pullAllPersonal: () => ipcRenderer.invoke('sync:pullAllPersonal'),
+    sendDirectTodo: (data) => ipcRenderer.invoke('sync:sendDirectTodo', data),
+    pullDirectTodos: (myJiraId) => ipcRenderer.invoke('sync:pullDirectTodos', myJiraId),
   },
   settings: {
     get: (key) => ipcRenderer.invoke('settings:get', key),

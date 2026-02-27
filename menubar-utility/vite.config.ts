@@ -50,9 +50,12 @@ export default defineConfig(({ mode }) => {
       '@renderer': path.resolve(__dirname, 'src/renderer'),
     },
   },
-  root: path.resolve(__dirname, 'src/renderer'),
+  root: path.resolve(__dirname, 'src'),
   build: {
     outDir: path.resolve(__dirname, 'dist/renderer'),
+    rollupOptions: {
+      input: path.resolve(__dirname, 'src/renderer/index.html'),
+    },
   },
   };
 });

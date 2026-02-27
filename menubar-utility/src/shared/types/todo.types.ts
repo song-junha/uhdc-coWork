@@ -11,6 +11,7 @@ export interface Todo {
   sortOrder: number;
   remoteId: string | null;
   syncedAt: string | null;
+  isDirect: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,9 +37,15 @@ export interface UpdateTodoDto {
   teamId?: string | null;
 }
 
+export interface SendDirectTodoDto {
+  creatorJiraId: string;
+  assigneeJiraId: string;
+  title: string;
+  description: string;
+  priority: Todo['priority'];
+  dueDate?: string;
+}
+
 export interface TodoFilter {
-  scope: 'personal' | 'team' | 'group';
-  teamId?: string;
   status?: Todo['status'] | 'all';
-  assigneeId?: string;
 }

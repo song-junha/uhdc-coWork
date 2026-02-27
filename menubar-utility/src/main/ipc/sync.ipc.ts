@@ -10,7 +10,10 @@ import {
   pullCalendarEvents,
   pushAllPersonal,
   pullAllPersonal,
+  sendDirectTodo,
+  pullDirectTodos,
 } from '../services/sync.service';
+import type { SendDirectTodoDto } from '../../shared/types/todo.types';
 
 export function registerSyncHandlers(): void {
   ipcMain.handle('sync:pushPersonalTodos', async (): Promise<void> => {
@@ -51,5 +54,13 @@ export function registerSyncHandlers(): void {
 
   ipcMain.handle('sync:pullAllPersonal', async (): Promise<void> => {
     return pullAllPersonal();
+  });
+
+  ipcMain.handle('sync:sendDirectTodo', async (_event, data: SendDirectTodoDto): Promise<void> => {
+    return sendDirectTodo(data);
+  });
+
+  ipcMain.handle('sync:pullDirectTodos', async (_event, myJiraId: string): Promise<void> => {
+    return pullDirectTodos(myJiraId);
   });
 }

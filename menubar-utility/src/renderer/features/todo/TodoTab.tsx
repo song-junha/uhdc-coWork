@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useI18n } from '../../hooks/useI18n';
 import { useTodoStore } from './useTodoStore';
-import { useTeamStore } from '../team/useTeamStore';
 import TodoItem from './TodoItem';
 import TodoForm from './TodoForm';
 import type { TranslationKey } from '../../../shared/i18n';
-import type { TodoFilter } from '../../../shared/types/todo.types';
 import {
   DndContext,
   closestCenter,
@@ -29,19 +27,10 @@ const statusTabs: { value: string; labelKey: TranslationKey }[] = [
   { value: 'done', labelKey: 'todo.filter.done' },
 ];
 
-const scopeTabs: { value: TodoFilter['scope']; labelKey: TranslationKey }[] = [
-  { value: 'personal', labelKey: 'todo.scope.personal' },
-  { value: 'team', labelKey: 'todo.scope.team' },
-  { value: 'group', labelKey: 'todo.scope.group' },
-];
-
 export default function TodoTab() {
   const { t } = useI18n();
   const { todos, filter, isLoading, editingId, fetchTodos, setFilter, setEditingId, reorderTodos } = useTodoStore();
-  const { teams, user } = useTeamStore();
   const [showForm, setShowForm] = useState(false);
-
-  const groupOptions = teams.filter(te => !te.isArchived);
 
   useEffect(() => {
     fetchTodos();
@@ -74,38 +63,6 @@ export default function TodoTab() {
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Scope selector */}
-      {user && (
-        <div className="flex items-center gap-1 px-3 pt-2 pb-1">
-          {scopeTabs.map(tab => (
-            <button
-              key={tab.value}
-              onClick={() => setFilter({ scope: tab.value, teamId: undefined })}
-              className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-colors ${
-                filter.scope === tab.value
-                  ? 'bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/30'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-              }`}
-            >
-              {t(tab.labelKey)}
-            </button>
-          ))}
-          {/* Team/Group dropdown */}
-          {(filter.scope === 'team' || filter.scope === 'group') && (
-            <select
-              value={filter.teamId ?? ''}
-              onChange={(e) => setFilter({ teamId: e.target.value || undefined })}
-              className="ml-auto text-[10px] bg-[var(--surface)] border border-[var(--border)] rounded px-1 py-0.5 text-[var(--text)]"
-            >
-              <option value="">-</option>
-              {groupOptions.map(te => (
-                <option key={te.id} value={te.id}>{te.name}</option>
-              ))}
-            </select>
-          )}
-        </div>
-      )}
-
       {/* Status filter tabs */}
       <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border)]">
         {statusTabs.map(tab => (

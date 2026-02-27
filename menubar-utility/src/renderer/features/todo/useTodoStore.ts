@@ -27,7 +27,7 @@ interface TodoStore {
 
 export const useTodoStore = create<TodoStore>((set, get) => ({
   todos: [],
-  filter: { scope: 'personal', status: 'all' },
+  filter: { status: 'all' },
   isLoading: false,
   editingId: null,
 

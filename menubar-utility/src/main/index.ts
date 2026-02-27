@@ -6,6 +6,9 @@ import { registerIpcHandlers } from './ipc';
 import { startScheduler, stopScheduler } from './services/scheduler.service';
 import { supabaseService } from './services/supabase.service';
 
+// Ensure correct app name and userData path (must be before any other initialization)
+app.setName('menubar-utility');
+
 // Handle Squirrel events (Windows installer)
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.menubar-utility.app');
@@ -44,9 +47,11 @@ app.on('ready', () => {
   }
 });
 
+const devServerUrl = process.env.VITE_DEV_SERVER_URL;
+
 const mb = menubar({
-  index: isDev
-    ? 'http://localhost:5173/index.html'
+  index: isDev && devServerUrl
+    ? `${devServerUrl}renderer/index.html`
     : `file://${path.join(__dirname, '../renderer/index.html')}`,
   icon: path.join(__dirname, '../../resources/iconTemplate.png'),
   browserWindow: {
@@ -95,10 +100,6 @@ mb.on('ready', () => {
     }
   });
 
-  // Dev tools in development
-  if (isDev && mb.window) {
-    // mb.window.webContents.openDevTools({ mode: 'detach' });
-  }
 });
 
 mb.on('after-hide', () => {

@@ -1,4 +1,4 @@
-import type { Todo, CreateTodoDto, UpdateTodoDto, TodoFilter } from './todo.types';
+import type { Todo, CreateTodoDto, UpdateTodoDto, TodoFilter, SendDirectTodoDto } from './todo.types';
 import type { MemoFolder, Memo, CreateFolderDto, UpdateFolderDto, CreateMemoDto, UpdateMemoDto } from './memo.types';
 import type { JiraProject, JiraIssueType, CreateTicketDto, JiraTicketResult, JiraSearchIssue, JiraUser, JiraTransition, JiraCreateField } from './jira.types';
 import type { CalendarEvent, CreateEventDto, UpdateEventDto } from './calendar.types';
@@ -74,6 +74,8 @@ export interface ElectronAPI {
     pullCalendarEvents: () => Promise<void>;
     pushAllPersonal: () => Promise<void>;
     pullAllPersonal: () => Promise<void>;
+    sendDirectTodo: (data: SendDirectTodoDto) => Promise<void>;
+    pullDirectTodos: (myJiraId: string) => Promise<void>;
   };
   settings: {
     get: (key: string) => Promise<string | null>;

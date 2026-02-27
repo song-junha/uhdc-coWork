@@ -3,7 +3,7 @@ import { supabaseService } from './supabase.service';
 import { rowToFolder, rowToMemo } from '../db/memo.repo';
 import { rowToEvent } from '../db/calendar.repo';
 import * as settingsRepo from '../db/settings.repo';
-import type { Todo } from '../../shared/types/todo.types';
+import type { Todo, SendDirectTodoDto } from '../../shared/types/todo.types';
 import type { MemoFolder, Memo } from '../../shared/types/memo.types';
 import type { CalendarEvent } from '../../shared/types/calendar.types';
 
@@ -766,6 +766,71 @@ export async function pullCalendarEvents(): Promise<void> {
     }
   } catch (err) {
     console.error('Calendar event pull error:', err);
+  }
+}
+
+// ─── Direct Todo Sync ────────────────────────────────────────────
+
+/** Push a single todo directly to another user via direct_todos table */
+export async function sendDirectTodo(data: SendDirectTodoDto): Promise<void> {
+  if (!supabaseService.isConfigured()) return;
+  const client = supabaseService.getClient();
+  const { error } = await client.from('direct_todos').insert({
+    creator_jira_id: data.creatorJiraId,
+    assignee_jira_id: data.assigneeJiraId,
+    title: data.title,
+    description: data.description,
+    priority: data.priority,
+    due_date: data.dueDate ?? null,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** Pull todos assigned to me from direct_todos and save locally */
+export async function pullDirectTodos(myJiraId: string): Promise<void> {
+  if (!supabaseService.isConfigured() || !myJiraId) return;
+  const db = getDatabase();
+  const client = supabaseService.getClient();
+
+  const { data: remoteTodos, error } = await client
+    .from('direct_todos')
+    .select('*')
+    .eq('assignee_jira_id', myJiraId);
+
+  if (error || !remoteTodos) return;
+
+  for (const remote of remoteTodos) {
+    const existing = db.prepare('SELECT * FROM todos WHERE remote_id = ?')
+      .get(remote.id) as Record<string, unknown> | undefined;
+
+    if (!existing) {
+      const maxOrder = db.prepare(
+        'SELECT COALESCE(MAX(sort_order), -1) + 1 as next_order FROM todos WHERE team_id IS NULL'
+      ).get() as { next_order: number };
+
+      db.prepare(`
+        INSERT INTO todos (title, description, status, priority, due_date, assignee_id, sort_order, remote_id, is_direct, synced_at, updated_at)
+        VALUES (?, ?, 'todo', ?, ?, ?, ?, ?, 1, datetime('now'), ?)
+      `).run(
+        remote.title, remote.description ?? '', remote.priority ?? 'medium',
+        remote.due_date ?? null, remote.assignee_jira_id ?? '',
+        maxOrder.next_order, remote.id, remote.updated_at,
+      );
+    } else {
+      const localUpdated = new Date(existing.updated_at as string).getTime();
+      const remoteUpdated = new Date(remote.updated_at as string).getTime();
+      if (remoteUpdated > localUpdated) {
+        db.prepare(`
+          UPDATE todos SET title = ?, description = ?, priority = ?, due_date = ?,
+            synced_at = datetime('now'), updated_at = ?
+          WHERE remote_id = ?
+        `).run(
+          remote.title, remote.description ?? '', remote.priority ?? 'medium',
+          remote.due_date ?? null, remote.updated_at, remote.id,
+        );
+      }
+    }
   }
 }
 

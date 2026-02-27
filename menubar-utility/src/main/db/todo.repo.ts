@@ -15,6 +15,7 @@ function rowToTodo(row: Record<string, unknown>): Todo {
     sortOrder: row.sort_order as number,
     remoteId: row.remote_id as string | null,
     syncedAt: row.synced_at as string | null,
+    isDirect: !!(row.is_direct as number),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -25,23 +26,9 @@ export function getAllTodos(filter: TodoFilter): Todo[] {
   let sql = 'SELECT * FROM todos WHERE 1=1';
   const params: unknown[] = [];
 
-  if (filter.scope === 'personal') {
-    sql += ' AND team_id IS NULL';
-  } else if (filter.scope === 'team' || filter.scope === 'group') {
-    if (filter.teamId) {
-      sql += ' AND team_id = ?';
-      params.push(filter.teamId);
-    }
-  }
-
   if (filter.status && filter.status !== 'all') {
     sql += ' AND status = ?';
     params.push(filter.status);
-  }
-
-  if (filter.assigneeId) {
-    sql += ' AND assignee_id = ?';
-    params.push(filter.assigneeId);
   }
 
   sql += ' ORDER BY sort_order ASC, created_at DESC';

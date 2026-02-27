@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useI18n } from '../hooks/useI18n';
 
 interface ConfirmDialogProps {
@@ -30,12 +31,12 @@ export default function ConfirmDialog({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onConfirm, onCancel]);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={onCancel}>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30" onClick={onCancel}>
       <div
         ref={dialogRef}
         onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-4 mx-4 w-full max-w-[280px] animate-in"
+        className="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-4 mx-4 w-full max-w-[280px]"
       >
         <h3 className="text-sm font-semibold mb-1">
           {title ?? t('common.confirmDelete')}
@@ -62,6 +63,7 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
