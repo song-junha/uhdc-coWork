@@ -2,6 +2,7 @@ import { ipcMain, BrowserWindow } from 'electron';
 import { supabaseService } from '../services/supabase.service';
 import { JiraService } from '../services/jira.service';
 import { syncAll, pullAllPersonal, pullDirectTodos } from '../services/sync.service';
+import { getDatabase } from '../db/index';
 import * as settingsRepo from '../db/settings.repo';
 import type { AuthUser } from '../../shared/types/team.types';
 
@@ -86,6 +87,24 @@ export function registerAuthHandlers(): void {
       // Pull direct todos assigned to me
       try {
         await pullDirectTodos(myself.accountId);
+      } catch {
+        // Non-fatal
+      }
+
+      // 잘못 생성된 타인 assignee todo 정리 (assignee_id가 내 것이 아닌 개인 todo)
+      try {
+        const db = getDatabase();
+        const deleted = db.prepare(
+          `DELETE FROM todos
+           WHERE team_id IS NULL
+             AND is_direct = 0
+             AND assignee_id IS NOT NULL
+             AND assignee_id != ''
+             AND assignee_id != ?`
+        ).run(myself.accountId);
+        if (deleted.changes > 0) {
+          console.log(`[autoAuth] cleaned up ${deleted.changes} misassigned local todos`);
+        }
       } catch {
         // Non-fatal
       }
