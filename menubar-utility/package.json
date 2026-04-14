@@ -1,6 +1,6 @@
 {
   "name": "menubar-utility",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "macOS Menu Bar Utility App - Todo, Memo, Jira, Calendar",
   "main": "dist/main/index.js",
   "scripts": {
