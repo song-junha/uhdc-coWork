@@ -27,7 +27,7 @@ jobs:
           cache-dependency-path: menubar-utility/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build & publish
         env:
