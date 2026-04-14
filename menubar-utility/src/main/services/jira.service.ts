@@ -107,26 +107,38 @@ export class JiraService {
     const cached = this.getCached<JiraCreateField[]>(cacheKey);
     if (cached) return cached;
 
-    const data = await this.request<{ values: Array<{
+    type FieldEntry = {
       fieldId: string;
       name: string;
       required: boolean;
-      schema: { type: string; custom?: string };
+      schema: { type: string; custom?: string; items?: string };
       allowedValues?: Array<{ id: string; value?: string; name?: string }>;
       defaultValue?: unknown;
-    }> }>(`/rest/api/3/issue/createmeta/${projectKey}/issuetypes/${issueTypeId}`);
+    };
+    const data = await this.request<{ values?: FieldEntry[]; fields?: FieldEntry[] }>(
+      `/rest/api/3/issue/createmeta/${projectKey}/issuetypes/${issueTypeId}`
+    );
 
-    const SKIP = new Set(['summary', 'description', 'project', 'issuetype', 'reporter', 'assignee', 'labels']);
+    const SKIP = new Set(['summary', 'description', 'project', 'issuetype', 'reporter', 'assignee', 'labels', 'attachment']);
+    // user/multiuserpicker 타입 커스텀 필드 제외 (개발문의처리자, Watcher-참조자 등)
+    const SKIP_SCHEMA_TYPES = new Set(['user', 'array:user']);
 
-    const fields = data.values
-      .filter(f => !SKIP.has(f.fieldId) && (f.required || f.fieldId.startsWith('customfield_')))
+    const rawFields = data.values ?? data.fields ?? [];
+    const fields = rawFields
+      .filter(f => {
+        if (SKIP.has(f.fieldId)) return false;
+        if (!(f.required || f.fieldId.startsWith('customfield_'))) return false;
+        const schemaKey = f.schema.items ? `${f.schema.type}:${f.schema.items}` : f.schema.type;
+        if (SKIP_SCHEMA_TYPES.has(schemaKey) || SKIP_SCHEMA_TYPES.has(f.schema.type)) return false;
+        return true;
+      })
       .map(f => ({
         key: f.fieldId,
         name: f.name,
         required: f.required,
         schema: { type: f.schema.type, custom: f.schema.custom },
         allowedValues: f.allowedValues?.map(v => ({ id: v.id, value: v.value, name: v.name })),
-        defaultValue: f.defaultValue,
+        defaultValue: f.fieldId === 'customfield_10126' ? 0.1 : f.defaultValue,
       }));
 
     this.setCache(cacheKey, fields);

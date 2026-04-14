@@ -52,6 +52,12 @@
     "asarUnpack": [
       "node_modules/better-sqlite3/**"
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "song-junha",
+      "repo": "uhdc-coWork",
+      "releaseType": "release"
+    },
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "resources/icon.icns",
@@ -94,6 +100,7 @@
     "better-sqlite3": "^12.6.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "electron-updater": "^6.8.3",
     "lucide-react": "^0.575.0",
     "menubar": "^9.5.2",
     "react": "^19.2.4",

@@ -6,7 +6,6 @@ import JiraTab from './features/jira/JiraTab';
 import CalendarTab from './features/calendar/CalendarTab';
 import TeamTab from './features/team/TeamTab';
 import SettingsView from './features/settings/SettingsView';
-import { useWindowScale } from './hooks/useWindowScale';
 import { useTeamStore } from './features/team/useTeamStore';
 import './hooks/useTheme'; // hydrate theme on startup
 
@@ -19,7 +18,6 @@ const tabComponents: Record<TabId, React.ComponentType> = {
 };
 
 export default function App() {
-  useWindowScale();
   const [activeTab, setActiveTab] = useState<TabId>('todo');
   const [showSettings, setShowSettings] = useState(false);
 

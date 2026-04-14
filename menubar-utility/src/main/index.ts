@@ -1,10 +1,11 @@
-import { app, globalShortcut, session, BrowserWindow } from 'electron';
+import { app, globalShortcut, session } from 'electron';
 import { menubar } from 'menubar';
 import path from 'path';
 import { initDatabase, closeDatabase } from './db';
 import { registerIpcHandlers } from './ipc';
 import { startScheduler, stopScheduler } from './services/scheduler.service';
 import { supabaseService } from './services/supabase.service';
+import { autoUpdater } from 'electron-updater';
 
 // Ensure correct app name and userData path (must be before any other initialization)
 app.setName('menubar-utility');
@@ -100,6 +101,22 @@ mb.on('ready', () => {
     }
   });
 
+  // Auto updater (프로덕션에서만)
+  if (!isDev) {
+    autoUpdater.checkForUpdatesAndNotify();
+
+    autoUpdater.on('update-available', (info) => {
+      mb.window?.webContents.send('updater:update-available', info);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      mb.window?.webContents.send('updater:update-downloaded', info);
+    });
+
+    autoUpdater.on('error', (err) => {
+      console.error('Auto updater error:', err);
+    });
+  }
 });
 
 mb.on('after-hide', () => {

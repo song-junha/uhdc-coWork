@@ -29,6 +29,7 @@ export default function AssigneeSelector({ mode, selected, onChange, placeholder
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [fallbackName, setFallbackName] = useState('');
+  const [dropUp, setDropUp] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -142,7 +143,15 @@ export default function AssigneeSelector({ mode, selected, onChange, placeholder
       {/* Selected chips + trigger */}
       <button
         type="button"
-        onClick={() => !loading && setOpen(!open)}
+        onClick={() => {
+          if (loading) return;
+          if (!open && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            setDropUp(spaceBelow < 200);
+          }
+          setOpen(!open);
+        }}
         className="w-full mt-0.5 flex items-center gap-1 flex-wrap min-h-[34px] px-2 py-1 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md text-left"
       >
         {selected.length === 0 ? (
@@ -174,7 +183,7 @@ export default function AssigneeSelector({ mode, selected, onChange, placeholder
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 right-0 top-full mt-0.5 z-30 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg max-h-48 overflow-y-auto">
+        <div className={`absolute left-0 right-0 z-30 bg-[var(--bg)] border border-[var(--border)] rounded-md shadow-lg max-h-48 overflow-y-auto ${dropUp ? 'bottom-full mb-0.5' : 'top-full mt-0.5'}`}>
           {/* Search */}
           <div className="sticky top-0 bg-[var(--bg)] border-b border-[var(--border)] px-2 py-1.5 flex items-center gap-1.5">
             <Search size={12} className="text-[var(--text-secondary)]" />

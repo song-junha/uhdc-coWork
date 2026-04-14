@@ -11,6 +11,7 @@ import { registerTeamHandlers } from './team.ipc';
 import { registerAuthHandlers } from './auth.ipc';
 import { registerSettingsHandlers } from './settings.ipc';
 import { registerSyncHandlers } from './sync.ipc';
+import { autoUpdater } from 'electron-updater';
 
 export function registerIpcHandlers(): void {
   registerTodoHandlers();
@@ -32,6 +33,10 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('app:quit', () => {
     app.quit();
+  });
+
+  ipcMain.handle('app:installUpdate', () => {
+    autoUpdater.quitAndInstall();
   });
 
   ipcMain.handle('app:resetData', (event) => {

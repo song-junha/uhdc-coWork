@@ -88,6 +88,7 @@ export interface ElectronAPI {
   app: {
     quit: () => Promise<void>;
     resetData: () => Promise<void>;
+    installUpdate: () => Promise<void>;
   };
   on: (channel: string, callback: (...args: unknown[]) => void) => void;
   off: (channel: string) => void;

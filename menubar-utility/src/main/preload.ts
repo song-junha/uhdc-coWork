@@ -85,6 +85,7 @@ const api: ElectronAPI = {
   app: {
     quit: () => ipcRenderer.invoke('app:quit'),
     resetData: () => ipcRenderer.invoke('app:resetData'),
+    installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
   },
   on: (channel, callback) => {
     ipcRenderer.on(channel, (_event, ...args) => callback(...args));
